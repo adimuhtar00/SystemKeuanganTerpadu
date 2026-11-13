@@ -29,9 +29,7 @@
       --accent-violet: #8b5cf6;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       background-color: var(--bg-deep);
@@ -47,7 +45,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Subtle 3D Cyber-Grid Perspective Background */
     .bg-cyber-grid {
       position: fixed;
       inset: 0;
@@ -61,7 +58,6 @@
       -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 45%, transparent 100%);
     }
 
-    /* Ambient 3D Aurora Glow Orbs */
     .ambient-orb {
       position: fixed;
       border-radius: 50%;
@@ -253,14 +249,14 @@
   <div class="ambient-orb orb-3"></div>
   <div class="ambient-orb orb-4"></div>
 
-  <!-- LOGIN SCREEN (Password-only for Adi Muhtar) -->
+  <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#070913]/95 backdrop-blur-2xl">
     <div class="glass-card hero-glass w-full max-w-md rounded-3xl p-8 sm:p-10 border border-white/20 text-center relative shadow-2xl">
       <div class="logo-3d w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-3xl font-extrabold text-white mb-6 shadow-2xl">
         FF
       </div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold text-aurora-shimmer mb-2">Selamat Datang, Adi Muhtar</h1>
-      <p class="text-xs sm:text-sm text-slate-300 mb-6">Sistem Keuangan Terpadu — Silakan masukkan password untuk mengakses dashboard eksekutif.</p>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-aurora-shimmer mb-2">Selamat Datang, Bang Adi</h1>
+      <p class="text-xs sm:text-sm text-slate-300 mb-6">Sistem Keuangan Terpadu — Pembacaan Otomatis Langsung dari <span class="text-cyan-300 font-mono-num">./database_keuangan_sync.xlsx</span></p>
 
       <form onsubmit="handleLogin(event)" class="space-y-5">
         <div>
@@ -271,12 +267,12 @@
         </button>
       </form>
       <div class="mt-6 text-[11px] text-slate-400 font-mono-num">
-        Live Sync: database_keuangan_sync.xlsx
+        Mode Eksternal Murni • Satu Folder Bersama index.html
       </div>
     </div>
   </div>
 
-  <!-- MAIN APP CONTAINER (Hidden until successful login) -->
+  <!-- MAIN APP CONTAINER -->
   <div id="mainAppContainer" class="hidden min-h-screen flex flex-col">
     <!-- Mobile Top Header -->
     <header id="mobileHeader" class="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[#0b1020]/90 backdrop-blur-xl border-b border-white/10">
@@ -298,10 +294,9 @@
     <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden lg:hidden"></div>
 
     <div class="relative z-10 flex min-h-screen">
-      <!-- Left Sidebar (280px fixed on desktop) -->
+      <!-- Left Sidebar -->
       <aside id="sidebar" class="sidebar-glass fixed lg:sticky top-0 left-0 z-40 h-screen flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0 shrink-0">
         <div class="p-5 overflow-y-auto">
-          <!-- Logo & Branding -->
           <div class="flex items-center justify-between mb-6 pb-5 border-b border-white/10">
             <div class="flex items-center gap-3.5">
               <div class="logo-3d w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-white text-lg tracking-wider shrink-0">
@@ -322,7 +317,6 @@
             </button>
           </div>
 
-          <!-- Navigation Menu (7 Pages) -->
           <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-3 mb-2.5">Navigasi Utama</div>
           <nav class="space-y-1.5" id="sidebarNav">
             <button data-page="dashboard" onclick="navigateTo('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
@@ -399,16 +393,16 @@
           <div class="glass-card rounded-2xl p-3.5">
             <div class="flex items-center justify-between text-xs mb-1.5">
               <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-                <span id="sidebarSyncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>Realtime Sync</span>
+                <span id="sidebarSyncDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>Status Database</span>
               </span>
-              <span id="sidebarSyncBadge" class="text-emerald-400 font-bold text-[11px]">LIVE</span>
+              <span id="sidebarSyncBadge" class="text-amber-400 font-bold text-[11px]">MEMUAT</span>
             </div>
-            <div class="text-[11px] text-cyan-300 font-medium truncate" id="dbSourceLabel">database_keuangan_sync.xlsx</div>
-            <div class="text-[10px] text-slate-400 mt-0.5 font-mono-num" id="lastSyncTimeLabel">Sinkron: Aktif</div>
+            <div class="text-[11px] text-cyan-300 font-medium truncate" id="dbSourceLabel">./database_keuangan_sync.xlsx</div>
+            <div class="text-[10px] text-slate-400 mt-0.5 font-mono-num" id="lastSyncTimeLabel">Menunggu sinkronisasi...</div>
             <div class="grid grid-cols-2 gap-1.5 mt-2.5">
               <button onclick="forceCheckLiveSync(true)" class="text-[11px] py-1.5 px-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/30 font-semibold transition">
-                Sync Data
+                Sync Ulang
               </button>
               <button onclick="handleLogout()" class="text-[11px] py-1.5 px-2 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-400/30 font-semibold transition">
                 Keluar
@@ -431,29 +425,50 @@
               </div>
 
               <!-- Live Sync Status Pill -->
-              <div id="liveSyncPill" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-xs font-semibold">
+              <div id="liveSyncPill" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/35 text-amber-300 text-xs font-semibold">
                 <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                  <span id="liveSyncPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span id="liveSyncDot" class="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
                 </span>
-                <span id="liveSyncModeText">Auto-Fetch (Excel Live)</span>
+                <span id="liveSyncModeText">Mencari database_keuangan_sync.xlsx...</span>
                 <span class="text-white/30">|</span>
-                <span id="liveSyncClock" class="font-mono-num text-[11px] text-emerald-200">--:--:--</span>
+                <span id="liveSyncClock" class="font-mono-num text-[11px]">--:--:--</span>
               </div>
             </div>
             <h1 id="pageTitle" class="text-2xl sm:text-3xl font-extrabold text-aurora-shimmer tracking-tight">Dashboard Utama</h1>
             <p id="pageSubtitle" class="text-sm text-slate-400 mt-1">Ringkasan eksekutif saldo kas, simpanan koperasi, rekening, dan piutang beredar.</p>
           </div>
 
-          <!-- Top Action Buttons (Connect Live Excel File) -->
+          <!-- Top Action Buttons (Universal Cross-Device File Picker) -->
           <div id="topActionButtons" class="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button onclick="connectLiveExcelHandle()" id="btnConnectLiveFile" class="btn-luxury inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 hover:from-cyan-500/40 hover:to-indigo-500/40 border border-cyan-400/45 shadow-lg shadow-cyan-500/15 backdrop-blur-md">
+            <input type="file" id="universalExcelInput" accept=".xlsx,.xls" class="hidden" onchange="handleUniversalFileSelect(event)" />
+            <button onclick="triggerUniversalExcelSync()" id="btnConnectLiveFile" class="btn-luxury inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 hover:from-cyan-500/40 hover:to-indigo-500/40 border border-cyan-400/45 shadow-lg shadow-cyan-500/15 backdrop-blur-md">
               <svg class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              <span>Hubungkan File Excel Live</span>
+              <span>Pilih File database_keuangan_sync.xlsx</span>
             </button>
           </div>
+        </div>
+
+        <!-- Banner Panduan Jika Belum Terhubung di file:// HP/PC -->
+        <div id="syncGuideBanner" class="hidden mb-6 rounded-2xl p-4 sm:p-5 bg-amber-500/15 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-amber-200">File Database Belum Terbaca Otomatis (Mode Penyimpanan Lokal HP/PC)</h4>
+              <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                Karena dibuka langsung dari folder lokal (<code class="text-amber-300">file://</code>) tanpa server web, browser memblokir pembacaan otomatis demi keamanan. Silakan klik tombol di samping untuk memilih file <strong class="text-white">database_keuangan_sync.xlsx</strong> yang berada di folder yang sama, atau jalankan lewat server lokal (<code class="text-cyan-300">python -m http.server</code> / Hosting) agar langsung sinkron otomatis tanpa klik!
+              </p>
+            </div>
+          </div>
+          <button onclick="triggerUniversalExcelSync()" class="btn-luxury shrink-0 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/25">
+            Muat database_keuangan_sync.xlsx
+          </button>
         </div>
 
         <!-- Dynamic Page Container -->
@@ -467,20 +482,28 @@
 
   <script>
     // =========================================================================
-    // 1. EMBEDDED INITIAL DATABASE (Exact dataset from database_keuangan_sync.xlsx)
+    // 1. PURE EXTERNAL DATABASE STATE (NO HARDCODED DATA IN BODY HTML)
     // =========================================================================
-    const initialDatabase = {"cash":[{"no":1,"tgl":"2024-12-03","rincian":"Awal (Recehan 1)","masuk":1140000,"keluar":0,"saldo":1140000},{"no":2,"tgl":"2024-12-03","rincian":"Awal (Recehan 5k)","masuk":730000,"keluar":0,"saldo":1870000},{"no":3,"tgl":"2024-12-03","rincian":"Awal (Recehan 2k)","masuk":265000,"keluar":0,"saldo":2135000},{"no":4,"tgl":"2024-12-03","rincian":"Simpan Arisan Kampus","masuk":2000000,"keluar":0,"saldo":4135000},{"no":5,"tgl":"2024-12-30","rincian":"Simpan Cash","masuk":1000000,"keluar":0,"saldo":5135000},{"no":6,"tgl":"2025-01-03","rincian":"Simpan Cash","masuk":500000,"keluar":0,"saldo":5635000},{"no":7,"tgl":"2025-01-10","rincian":"Simpan SHU","masuk":1000000,"keluar":0,"saldo":6635000},{"no":8,"tgl":"2025-02-01","rincian":"Biaya Sehari-hari","masuk":0,"keluar":1900000,"saldo":4735000},{"no":9,"tgl":"2025-02-28","rincian":"Pinjam Rifki (Beli Motor)","masuk":0,"keluar":2200000,"saldo":2535000},{"no":10,"tgl":"2025-02-28","rincian":"Biaya Sehari-hari","masuk":0,"keluar":400000,"saldo":2135000},{"no":11,"tgl":"2025-03-27","rincian":"Dana Mudik","masuk":0,"keluar":1455000,"saldo":680000},{"no":12,"tgl":"2025-04-23","rincian":"Simpan Cash","masuk":4000000,"keluar":0,"saldo":4680000},{"no":13,"tgl":"2025-05-08","rincian":"Simpan Arisan","masuk":2450000,"keluar":0,"saldo":7130000},{"no":14,"tgl":"2025-05-08","rincian":"Simpan Recehan 2k","masuk":106000,"keluar":0,"saldo":7236000},{"no":15,"tgl":"2025-05-13","rincian":"Simpan Cash","masuk":550000,"keluar":0,"saldo":7786000},{"no":16,"tgl":"2025-05-23","rincian":"Simpan Cash","masuk":2000000,"keluar":0,"saldo":9786000},{"no":17,"tgl":"2025-05-25","rincian":"Beli Box Speaker 18\"x2","masuk":0,"keluar":1000000,"saldo":8786000},{"no":18,"tgl":"2025-06-04","rincian":"Pulkam (Nikahan Rifki)","masuk":0,"keluar":3000000,"saldo":5786000},{"no":19,"tgl":"2025-06-13","rincian":"Rifki Bayar Hutang","masuk":3000000,"keluar":0,"saldo":8786000},{"no":20,"tgl":"2025-06-13","rincian":"Simpan Cash","masuk":2000000,"keluar":0,"saldo":10786000},{"no":21,"tgl":"2025-06-23","rincian":"Simpan YouTube","masuk":4000000,"keluar":0,"saldo":14786000},{"no":22,"tgl":"2025-06-23","rincian":"Simpan Recehan 2k","masuk":44000,"keluar":0,"saldo":14830000},{"no":23,"tgl":"2025-06-30","rincian":"Simpan Cash","masuk":700000,"keluar":0,"saldo":15530000},{"no":24,"tgl":"2025-07-07","rincian":"Simpan Manggung","masuk":1000000,"keluar":0,"saldo":16530000},{"no":25,"tgl":"2025-07-07","rincian":"Ema Bayar Hutang","masuk":5000000,"keluar":0,"saldo":21530000},{"no":26,"tgl":"2025-07-14","rincian":"Hasil Kopi 2025 (Teh Yuyun)","masuk":4300000,"keluar":0,"saldo":25830000},{"no":27,"tgl":"2025-07-14","rincian":"Bayar HP Infinix Ali","masuk":2700000,"keluar":0,"saldo":28530000},{"no":28,"tgl":"2025-07-22","rincian":"Simpan YouTube","masuk":4000000,"keluar":0,"saldo":32530000},{"no":29,"tgl":"2025-07-25","rincian":"Beli iPhone","masuk":0,"keluar":5500000,"saldo":27030000},{"no":30,"tgl":"2025-07-25","rincian":"Beli iPhone Nazila","masuk":0,"keluar":2000000,"saldo":25030000},{"no":31,"tgl":"2025-07-25","rincian":"Angsuran HP Akbar","masuk":200000,"keluar":0,"saldo":25230000},{"no":32,"tgl":"2025-08-20","rincian":"Biaya Sehari-hari","masuk":0,"keluar":1778000,"saldo":23452000},{"no":33,"tgl":"2025-08-21","rincian":"Biaya Sehari-hari","masuk":0,"keluar":400000,"saldo":23052000},{"no":34,"tgl":"2025-08-22","rincian":"Simpan Tabungan","masuk":2200000,"keluar":0,"saldo":25252000},{"no":35,"tgl":"2025-08-25","rincian":"Simpan Buket + Manggung","masuk":1800000,"keluar":0,"saldo":27052000},{"no":36,"tgl":"2025-08-26","rincian":"Ijal Bayar Motor","masuk":8000000,"keluar":0,"saldo":35052000},{"no":37,"tgl":"2025-08-29","rincian":"Ambil Cash 5k","masuk":0,"keluar":180000,"saldo":34872000},{"no":38,"tgl":"2025-09-01","rincian":"Beli Motor ADV 160","masuk":0,"keluar":34000000,"saldo":872000},{"no":39,"tgl":"2025-09-08","rincian":"Simpan Cash","masuk":1590000,"keluar":0,"saldo":2462000},{"no":40,"tgl":"2025-09-08","rincian":"Simpan Recehan 2k","masuk":108000,"keluar":0,"saldo":2570000},{"no":41,"tgl":"2025-09-16","rincian":"Pinjam Ema","masuk":0,"keluar":1000000,"saldo":1570000},{"no":42,"tgl":"2025-09-19","rincian":"Saweran Motor","masuk":0,"keluar":500000,"saldo":1070000},{"no":43,"tgl":"2025-10-22","rincian":"Simpan YouTube","masuk":2000000,"keluar":0,"saldo":3070000},{"no":44,"tgl":"2025-11-25","rincian":"Simpan YouTube","masuk":2000000,"keluar":0,"saldo":5070000},{"no":45,"tgl":"2025-12-04","rincian":"Simpan Koperasi","masuk":2500000,"keluar":0,"saldo":7570000},{"no":46,"tgl":"2025-12-08","rincian":"Simpan Job","masuk":685000,"keluar":0,"saldo":8255000},{"no":47,"tgl":"2025-12-12","rincian":"Angsuran Bang Zul","masuk":1000000,"keluar":0,"saldo":9255000},{"no":48,"tgl":"2025-12-22","rincian":"Simpan Manggung","masuk":205000,"keluar":0,"saldo":9460000},{"no":49,"tgl":"2025-12-22","rincian":"Simpan YouTube","masuk":4000000,"keluar":0,"saldo":13460000},{"no":50,"tgl":"2025-12-24","rincian":"Simpan Gaji","masuk":1000000,"keluar":0,"saldo":14460000},{"no":51,"tgl":"2025-12-29","rincian":"Simpan Manggung","masuk":350000,"keluar":0,"saldo":14810000},{"no":52,"tgl":"2026-01-17","rincian":"Angsuran Bang Zul","masuk":2000000,"keluar":0,"saldo":16810000},{"no":53,"tgl":"2026-02-23","rincian":"Simpan YouTube","masuk":5000000,"keluar":0,"saldo":21810000},{"no":54,"tgl":"2026-02-23","rincian":"Uang Baru 5k","masuk":40000,"keluar":0,"saldo":21850000},{"no":55,"tgl":"2026-02-26","rincian":"Sisa Dana Ka Nurma","masuk":500000,"keluar":0,"saldo":22350000},{"no":56,"tgl":"2026-02-27","rincian":"Simpan Gaji","masuk":2000000,"keluar":0,"saldo":24350000},{"no":57,"tgl":"2026-03-09","rincian":"Tukar Uang Baru","masuk":206000,"keluar":0,"saldo":24556000},{"no":58,"tgl":"2026-03-10","rincian":"Ambil uang Baru","masuk":0,"keluar":550000,"saldo":24006000},{"no":59,"tgl":"2026-04-15","rincian":"Ambil Keperluan mudk & sehari hari","masuk":0,"keluar":3006000,"saldo":21000000},{"no":60,"tgl":"2026-04-22","rincian":"Simpan dari YT","masuk":4500000,"keluar":0,"saldo":25500000},{"no":61,"tgl":"2026-04-27","rincian":"Simban dari Job","masuk":500000,"keluar":0,"saldo":26000000},{"no":62,"tgl":"2026-04-29","rincian":"Simpan dari Gajian","masuk":2500000,"keluar":0,"saldo":28500000},{"no":63,"tgl":"2026-05-22","rincian":"Simpan dari YT","masuk":500000,"keluar":0,"saldo":29000000},{"no":64,"tgl":"2026-05-29","rincian":"Dari koprasi (dana cadangan)","masuk":3000000,"keluar":0,"saldo":32000000},{"no":65,"tgl":"2026-06-02","rincian":"Dari Manggung","masuk":1000000,"keluar":0,"saldo":33000000},{"no":66,"tgl":"2026-06-05","rincian":"Dipinjam Pak Afit","masuk":0,"keluar":3000000,"saldo":30000000},{"no":67,"tgl":"2026-06-08","rincian":"Simpan dari Manggung","masuk":2000000,"keluar":0,"saldo":32000000},{"no":68,"tgl":"2026-06-12","rincian":"Tabung ke Koperasi","masuk":0,"keluar":1000000,"saldo":31000000},{"no":69,"tgl":"2026-06-15","rincian":"Simpan dari Manggung","masuk":1500000,"keluar":0,"saldo":32500000},{"no":70,"tgl":"2026-06-18","rincian":"Angsuran Bang Zul","masuk":1000000,"keluar":0,"saldo":33500000},{"no":71,"tgl":"2026-06-22","rincian":"Dari Manggung","masuk":1000000,"keluar":0,"saldo":34500000},{"no":72,"tgl":"2026-06-25","rincian":"Dari YT","masuk":2500000,"keluar":0,"saldo":37000000},{"no":73,"tgl":"2026-07-01","rincian":"Pinjam Mamak Subhan","masuk":0,"keluar":15000000,"saldo":22000000},{"no":74,"tgl":"2026-07-06","rincian":"Dari Manggung","masuk":1000000,"keluar":0,"saldo":23000000},{"no":75,"tgl":"2026-07-21","rincian":"Mamak Subhan Bayar","masuk":15000000,"keluar":0,"saldo":38000000},{"no":76,"tgl":"2026-07-21","rincian":"Dipinjam Bang zul (Beli Mixer Ashley)","masuk":0,"keluar":1000000,"saldo":37000000},{"no":77,"tgl":"2026-08-01","rincian":"Ambul buat Buket (Kado Nazila)","masuk":0,"keluar":500000,"saldo":36500000},{"no":78,"tgl":"2026-08-04","rincian":"Simpan Cash","masuk":500000,"keluar":0,"saldo":37000000},{"no":79,"tgl":"2026-08-11","rincian":"Simpan Cash","masuk":300000,"keluar":0,"saldo":37300000},{"no":80,"tgl":"2026-08-31","rincian":"Simpan Cash","masuk":500000,"keluar":0,"saldo":37800000},{"no":81,"tgl":"2026-09-14","rincian":"Tukar Cash ke Rek (Dari Nazila)","masuk":0,"keluar":500000,"saldo":37300000},{"no":82,"tgl":"2026-09-14","rincian":"Tukar dari Rek Ke Cash (Hasil Rumah)","masuk":0,"keluar":25000000,"saldo":12300000},{"no":83,"tgl":"2026-09-14","rincian":"Tukar Cash (Nazila Beli Emas 4 gr)","masuk":9400000,"keluar":0,"saldo":21700000},{"no":84,"tgl":"2026-09-22","rincian":"Tukar Cash","masuk":0,"keluar":700000,"saldo":21000000},{"no":85,"tgl":"2026-10-01","rincian":"Tukar Cash","masuk":500000,"keluar":0,"saldo":21500000},{"no":86,"tgl":"2026-10-05","rincian":"Simpan dari Manggung","masuk":1500000,"keluar":0,"saldo":23000000},{"no":87,"tgl":"2026-10-10","rincian":"Tukar Cash","masuk":2500000,"keluar":0,"saldo":25500000},{"no":88,"tgl":"2026-10-10","rincian":"Pake dulu biaya lamaran","masuk":0,"keluar":3000000,"saldo":22500000},{"no":89,"tgl":"2026-10-20","rincian":"Ongkos ema travel 3 orang pp","masuk":0,"keluar":3000000,"saldo":19500000},{"no":90,"tgl":"2026-10-16","rincian":"Tukar Cash [ 1 ]","masuk":0,"keluar":500000,"saldo":19000000},{"no":91,"tgl":"2026-10-25","rincian":"Pinjem tab Nazila","masuk":1000000,"keluar":0,"saldo":20000000},{"no":92,"tgl":"2026-10-25","rincian":"Hjual Emas (di petir)","masuk":5000000,"keluar":0,"saldo":25000000},{"no":93,"tgl":"2026-10-25","rincian":"Uang ke Mahar ke Bapak","masuk":0,"keluar":25000000,"saldo":0},{"no":93,"tgl":"2026-10-28","rincian":"Tukar Cash [2]","masuk":4200000,"keluar":0,"saldo":4200000},{"no":94,"tgl":"2026-11-12","rincian":"Pakai pribadi","masuk":300000,"keluar":0,"saldo":4500000}],"rekening":[{"no":1,"tgl":"2026-07-22","rincian":"Dari YT","masuk":10000000,"keluar":0,"saldo":10000000},{"no":2,"tgl":"2026-07-30","rincian":"Dari Paroan Kebon","masuk":3800000,"keluar":0,"saldo":13800000},{"no":3,"tgl":"2026-07-30","rincian":"Simpan","masuk":200000,"keluar":0,"saldo":14000000},{"no":4,"tgl":"2026-08-03","rincian":"Dipinjam k Nurma","masuk":0,"keluar":1000000,"saldo":13000000},{"no":5,"tgl":"2026-08-03","rincian":"Simpan dari Manggung Bekasi","masuk":1500000,"keluar":0,"saldo":14500000},{"no":6,"tgl":"2026-08-09","rincian":"Simpan","masuk":2000000,"keluar":0,"saldo":16500000},{"no":7,"tgl":"2026-08-09","rincian":"Simpan","masuk":1000000,"keluar":0,"saldo":17500000},{"no":8,"tgl":"2026-08-12","rincian":"Simpan","masuk":500000,"keluar":0,"saldo":18000000},{"no":9,"tgl":"2026-08-25","rincian":"Simpan dari YT","masuk":8000000,"keluar":0,"saldo":26000000},{"no":10,"tgl":"2026-09-09","rincian":"Dari Jual Rumah","masuk":70000000,"keluar":0,"saldo":96000000},{"no":11,"tgl":"2026-09-10","rincian":"Bagi harta hasil rumah","masuk":0,"keluar":26636900,"saldo":69363100},{"no":12,"tgl":"2026-09-10","rincian":"Bagi ke Ema","masuk":0,"keluar":1000000,"saldo":68363100},{"no":13,"tgl":"2026-09-10","rincian":"Bagi ke Rifki","masuk":0,"keluar":500000,"saldo":67863100},{"no":14,"tgl":"2026-09-10","rincian":"Bagi ke A Amud","masuk":0,"keluar":500000,"saldo":67363100},{"no":15,"tgl":"2026-09-10","rincian":"Bagi ke Eneh","masuk":0,"keluar":500000,"saldo":66863100},{"no":16,"tgl":"2026-09-12","rincian":"Bg Agus Kelabay Pinjam","masuk":0,"keluar":4000000,"saldo":62863100},{"no":17,"tgl":"2026-09-14","rincian":"Tukar Cash ke Rek (dari Nazila)","masuk":500000,"keluar":0,"saldo":63363100},{"no":18,"tgl":"2026-09-14","rincian":"Simpan (Ke Ema Hasil Rumah )","masuk":0,"keluar":25000000,"saldo":38363100},{"no":19,"tgl":"2026-09-14","rincian":"Tukar dari Rek Ke Cash (Hasil Rumah)","masuk":25000000,"keluar":0,"saldo":63363100},{"no":20,"tgl":"2026-09-14","rincian":"Beli Emas Kawin (Mahar)","masuk":0,"keluar":29285000,"saldo":34078100},{"no":21,"tgl":"2026-09-14","rincian":"Tukar Cash (Nazila Beli Emas 4 gr)","masuk":0,"keluar":9400000,"saldo":24678100},{"no":22,"tgl":"2026-09-18","rincian":"Simpan dari teteh bayar HP","masuk":1200000,"keluar":0,"saldo":25878100},{"no":23,"tgl":"2026-09-18","rincian":"Simpan TB","masuk":800000,"keluar":0,"saldo":26678100},{"no":24,"tgl":"2026-09-22","rincian":"Tukar Cash","masuk":700000,"keluar":0,"saldo":27378100},{"no":25,"tgl":"2026-09-23","rincian":"Simpan Cash","masuk":4000000,"keluar":0,"saldo":31378100},{"no":26,"tgl":"2026-09-23","rincian":"TF Jalan ema ka Metro","masuk":0,"keluar":300000,"saldo":31078100},{"no":27,"tgl":"2026-09-27","rincian":"Simpan dari Gajian","masuk":3000000,"keluar":0,"saldo":34078100},{"no":28,"tgl":"2026-10-01","rincian":"Tukar Cash","masuk":0,"keluar":500000,"saldo":33578100},{"no":29,"tgl":"2026-10-01","rincian":"Simpan saldo","masuk":366323,"keluar":0,"saldo":33944423},{"no":30,"tgl":"2026-10-01","rincian":"pakai kirim ke bang zul","masuk":0,"keluar":500000,"saldo":33444423},{"no":31,"tgl":"2026-10-10","rincian":"Tukar Cash","masuk":0,"keluar":2500000,"saldo":30944423},{"no":32,"tgl":"2026-10-10","rincian":"Bang Agus Bayar","masuk":3000000,"keluar":0,"saldo":33944423},{"no":33,"tgl":"2026-10-14","rincian":"Biaya dekor lamaran","masuk":0,"keluar":1000000,"saldo":32944423},{"no":34,"tgl":"2026-10-16","rincian":"Tukar Cash [ 1 ]","masuk":500000,"keluar":0,"saldo":33444423},{"no":35,"tgl":"2026-10-16","rincian":"Tukar cash koperasi","masuk":0,"keluar":1415000,"saldo":32029423},{"no":36,"tgl":"2026-10-20","rincian":"Biaya keperluan lamaran","masuk":0,"keluar":2570000,"saldo":29459423},{"no":37,"tgl":"2026-10-20","rincian":"Biaya seserahan (tf)","masuk":0,"keluar":5000000,"saldo":24459423},{"no":38,"tgl":"2026-10-22","rincian":"Dari youtube","masuk":8400000,"keluar":0,"saldo":32859423},{"no":39,"tgl":"2026-10-05","rincian":"Shopee Pay (Camera Canon)","masuk":0,"keluar":15251349,"saldo":17608074},{"no":40,"tgl":"2026-10-25","rincian":"Uang ke Mahar ke Bapak","masuk":0,"keluar":15000000,"saldo":2608074},{"no":41,"tgl":"2026-10-25","rincian":"Biaya Preweding & jalan","masuk":0,"keluar":1000000,"saldo":1608074},{"no":42,"tgl":"2026-10-28","rincian":"Simpan dari gajian","masuk":4000000,"keluar":0,"saldo":5608074},{"no":43,"tgl":"2026-10-28","rincian":"Tukar Cash [2]","masuk":0,"keluar":4200000,"saldo":1408074},{"no":44,"tgl":"2026-10-28","rincian":"Ambil cash","masuk":0,"keluar":150000,"saldo":1258074},{"no":45,"tgl":"2026-10-28","rincian":"Ambil cash","masuk":0,"keluar":1200000,"saldo":58074},{"no":46,"tgl":"2026-11-11","rincian":"Bang zul bayar angsuran","masuk":4660000,"keluar":0,"saldo":4718074},{"no":47,"tgl":"2026-11-12","rincian":"Ambil cash","masuk":0,"keluar":1050000,"saldo":3668074}],"piutang":[{"nama":"Bang Agus Kelabay","tgl":"2026-09-12","keterangan":"Pinjam (Proyek Ngurus Tanah dkt Torabika)bayar bln des 2026","pinjam":4000000,"bayar":0},{"nama":"Bang Agus Kelabay","tgl":"2026-10-10","keterangan":"Bayar","pinjam":0,"bayar":3000000},{"nama":"Bang Zulkarnain","tgl":"2025-01-11","keterangan":"PINJAM (Untuk Melunasi PJ di Luar) +ADM","pinjam":32160000,"bayar":0},{"nama":"Bang Zulkarnain","tgl":"2025-03-14","keterangan":"Bayar Cash","pinjam":0,"bayar":2500000},{"nama":"Bang Zulkarnain","tgl":"2025-04-11","keterangan":"Bayar Cash","pinjam":0,"bayar":2500000},{"nama":"Bang Zulkarnain","tgl":"2025-05-12","keterangan":"Bayar Cash","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2025-06-12","keterangan":"Bayar Tf (by Nazila)","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2025-08-10","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2025-08-10","keterangan":"Bayar Cash (uang box speaker)","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2025-09-12","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2025-10-10","keterangan":"Bayar Cash","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2025-11-14","keterangan":"Bayar Cash","pinjam":0,"bayar":1500000},{"nama":"Bang Zulkarnain","tgl":"2025-12-12","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-01-17","keterangan":"Bayar Cash","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2026-02-14","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-03-17","keterangan":"Bayar Cash (sblm mudik)","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-04-06","keterangan":"Pinjam (bayar PLN)","pinjam":2500000,"bayar":0},{"nama":"Bang Zulkarnain","tgl":"2026-04-18","keterangan":"Bayar Cash","pinjam":0,"bayar":1500000},{"nama":"Bang Zulkarnain","tgl":"2026-06-18","keterangan":"Bayar (TF)","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-07-21","keterangan":"Pinjam (Beli Mixer Audio)","pinjam":1000000,"bayar":0},{"nama":"Bang Zulkarnain","tgl":"2026-11-11","keterangan":"Bayar Tf (by Nazila)","pinjam":0,"bayar":4660000},{"nama":"Kak Nurma","tgl":"2024-07-12","keterangan":"Pinjam untuk bayar tagihan motor","pinjam":2000000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-07-06","keterangan":"Pinjam untuk Berobat Oyot (Cash)","pinjam":300000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-07-17","keterangan":"Bayar via Transfer","pinjam":0,"bayar":300000},{"nama":"Kak Nurma","tgl":"2025-10-01","keterangan":"Pinjam untuk Angsuran Motor","pinjam":350000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-10-11","keterangan":"Pinjam Transfer ke DANA (Beli Pampers)","pinjam":200000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-12-08","keterangan":"Bayar Cash","pinjam":0,"bayar":200000},{"nama":"Kak Nurma","tgl":"2026-02-24","keterangan":"Pinjam untuk Mudik (Nenek Meninggal)","pinjam":3000000,"bayar":0},{"nama":"Kak Nurma","tgl":"2026-02-25","keterangan":"Bayar (Transfer via Nazila)","pinjam":0,"bayar":5350000},{"nama":"Kak Nurma","tgl":"2026-08-03","keterangan":"Pinjanm (bayar 3bln)","pinjam":1000000,"bayar":0},{"nama":"A Mahmud","tgl":"2022-01-28","keterangan":"Sisa Pinjam sebelumya","pinjam":1000000,"bayar":0},{"nama":"A Mahmud","tgl":"2022-07-25","keterangan":"PINJAM (GADAI KEBON) JUNI 2022 - JUNI 2025 (3TH)","pinjam":5000000,"bayar":0},{"nama":"A Mahmud","tgl":"2022-08-09","keterangan":"PINJAM (GADAI KEBON) JUNI 2022 - JUNI 2025 (3TH)","pinjam":4000000,"bayar":0},{"nama":"A Mahmud","tgl":"2023-02-07","keterangan":"PINJAM BUAT ONGKOSK KE Jakarta teh ani","pinjam":500000,"bayar":0},{"nama":"A Mahmud","tgl":"2023-04-02","keterangan":"BAYAR TGL PINJAMAN TGL 7/2/23","pinjam":0,"bayar":500000}],"koperasi":900000};
+    const EXCEL_FILENAME = 'database_keuangan_sync.xlsx';
+    const EXCEL_RELATIVE_PATH = './database_keuangan_sync.xlsx';
 
-    let dbState = JSON.parse(JSON.stringify(initialDatabase));
+    let dbState = {
+      cash: [],
+      rekening: [],
+      piutang: [],
+      koperasi: 0
+    };
+
     let currentPage = 'dashboard';
     let barChartInstance = null;
     let doughnutChartInstance = null;
 
     let liveSyncState = {
-      mode: 'snapshot',
+      mode: 'pending', // 'http' | 'handle' | 'manual' | 'pending'
       fileHandle: null,
       lastModified: null,
-      lastSignature: null
+      lastSignature: null,
+      isLoaded: false
     };
 
     let filterState = {
@@ -499,7 +522,6 @@
       if (pwd === 'adim') {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainAppContainer').classList.remove('hidden');
-        showToast('Selamat datang, Adi Muhtar!');
         recalculateRunningBalances();
         renderCurrentPage();
         startRealtimeSyncLoop();
@@ -517,7 +539,7 @@
     }
 
     // =========================================================================
-    // 3. FORMATTING & HELPERS
+    // 3. FORMATTING & EXACT SAME-FOLDER EXCEL PARSER
     // =========================================================================
     function formatRupiah(amount) {
       const num = Number(amount) || 0;
@@ -610,7 +632,11 @@
       const container = document.getElementById('toastContainer');
       if (!container) return;
       const toast = document.createElement('div');
-      const accentBorder = type === 'success' ? 'border-emerald-400/40 bg-slate-900/95 text-emerald-300' : type === 'error' ? 'border-rose-400/40 bg-slate-900/95 text-rose-300' : 'border-cyan-400/40 bg-slate-900/95 text-cyan-300';
+      const accentBorder = type === 'success'
+        ? 'border-emerald-400/40 bg-slate-900/95 text-emerald-300'
+        : type === 'error'
+          ? 'border-rose-400/40 bg-slate-900/95 text-rose-300'
+          : 'border-cyan-400/40 bg-slate-900/95 text-cyan-300';
 
       toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border ${accentBorder} backdrop-blur-xl shadow-2xl text-sm font-medium transition-all duration-300`;
       toast.innerHTML = `
@@ -622,7 +648,7 @@
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(8px)';
         setTimeout(() => toast.remove(), 300);
-      }, 3200);
+      }, 3400);
     }
 
     // =========================================================================
@@ -875,6 +901,7 @@
                 ${lastCash ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-xs font-semibold">Mutasi Cash (#${lastCash.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastCash.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastCash.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastCash.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastCash.masuk > 0 ? '+' + formatRupiah(lastCash.masuk) : '-' + formatRupiah(lastCash.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-cyan-300">${formatRupiah(lastCash.saldo)}</td></tr>` : ''}
                 ${lastRek ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-semibold">Mutasi Rekening (#${lastRek.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastRek.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastRek.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastRek.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastRek.masuk > 0 ? '+' + formatRupiah(lastRek.masuk) : '-' + formatRupiah(lastRek.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-indigo-300">${formatRupiah(lastRek.saldo)}</td></tr>` : ''}
                 ${lastPiutang ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold">Piutang (${escapeHtml(lastPiutang.nama)})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastPiutang.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastPiutang.keterangan)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastPiutang.pinjam > 0 ? 'text-amber-400' : 'text-emerald-400'}">${lastPiutang.pinjam > 0 ? 'Pinjam ' + formatRupiah(lastPiutang.pinjam) : 'Bayar ' + formatRupiah(lastPiutang.bayar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-amber-300">${formatRupiah(m.totalPiutang)}</td></tr>` : ''}
+                ${!lastCash && !lastRek && !lastPiutang ? `<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400 text-sm">Belum ada data terbaca dari <code class="text-cyan-300">database_keuangan_sync.xlsx</code>. Silakan muat file Excel atau jalankan dari folder server.</td></tr>` : ''}
               </tbody>
             </table>
           </div>
@@ -1365,7 +1392,7 @@
     }
 
     // =========================================================================
-    // 6. REALTIME EXCEL SYNC ENGINE & MULTI-SHEET PARSER
+    // 6. CROSS-DEVICE SAME-FOLDER EXCEL ENGINE (HTTP + XHR + FILE PICKER)
     // =========================================================================
     function normalizeExcelDate(val) {
       if (val === null || val === undefined || val === '') return new Date().toISOString().slice(0, 10);
@@ -1404,23 +1431,32 @@
       let parsedPiutang = [];
       let parsedKoperasi = null;
 
+      // 1. Parse Sheet Mutasi (Mutasi_Cash_Rekening)
       const mutasiName = workbook.SheetNames.find(n => n.toLowerCase().includes('mutasi'));
       if (mutasiName) {
         const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[mutasiName], { header: 1, defval: '' });
-        let usedDualLayout = false;
 
         for (let r = 4; r < matrix.length; r++) {
           const row = matrix[r] || [];
+
+          // Kolom Kiri: Cash (B=Tgl, C=Rincian, D=Masuk, E=Keluar)
           const cTgl = row[1];
           const cRincian = String(row[2] || '').trim();
           const cMasuk = parseNumericCell(row[3]);
           const cKeluar = parseNumericCell(row[4]);
 
-          if (cRincian && cRincian.toLowerCase() !== 'rincian' && cRincian.toLowerCase() !== 'total' && (cTgl !== '' || cMasuk > 0 || cKeluar > 0)) {
-            usedDualLayout = true;
-            parsedCash.push({ no: parsedCash.length + 1, tgl: normalizeExcelDate(cTgl), rincian: cRincian, masuk: cMasuk, keluar: cKeluar, saldo: 0 });
+          if (cRincian && !['rincian', 'total', 'saldo'].includes(cRincian.toLowerCase()) && (cTgl !== '' || cMasuk > 0 || cKeluar > 0)) {
+            parsedCash.push({
+              no: parsedCash.length + 1,
+              tgl: normalizeExcelDate(cTgl),
+              rincian: cRincian,
+              masuk: cMasuk,
+              keluar: cKeluar,
+              saldo: 0
+            });
           }
 
+          // Kolom Kanan: Rekening (H=No/Tgl, I=Tgl/Rincian, J=Rincian/Masuk, K=Masuk/Keluar, L=Keluar)
           if (row.length >= 11) {
             const col7 = row[7];
             const col8 = row[8];
@@ -1433,14 +1469,21 @@
             const rMasuk = parseNumericCell(isCol7Index ? col10 : col9);
             const rKeluar = parseNumericCell(isCol7Index ? col11 : col10);
 
-            if (rRincian && rRincian.toLowerCase() !== 'rincian' && rRincian.toLowerCase() !== 'total' && (rTgl !== '' || rMasuk > 0 || rKeluar > 0)) {
-              usedDualLayout = true;
-              parsedRek.push({ no: parsedRek.length + 1, tgl: normalizeExcelDate(rTgl), rincian: rRincian, masuk: rMasuk, keluar: rKeluar, saldo: 0 });
+            if (rRincian && !['rincian', 'total', 'saldo'].includes(rRincian.toLowerCase()) && (rTgl !== '' || rMasuk > 0 || rKeluar > 0)) {
+              parsedRek.push({
+                no: parsedRek.length + 1,
+                tgl: normalizeExcelDate(rTgl),
+                rincian: rRincian,
+                masuk: rMasuk,
+                keluar: rKeluar,
+                saldo: 0
+              });
             }
           }
         }
       }
 
+      // 2. Parse Sheet Piutang (Piutang_Gabungan)
       const piutangName = workbook.SheetNames.find(n => n.toLowerCase().includes('piutang'));
       if (piutangName) {
         const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[piutangName], { header: 1, defval: '' });
@@ -1454,11 +1497,18 @@
           const bayar = parseNumericCell(isCol0No ? row[5] : row[4]);
 
           if (nama && !['nama', 'nama peminjam', 'no', 'total'].includes(nama.toLowerCase()) && (pinjam > 0 || bayar > 0)) {
-            parsedPiutang.push({ nama, tgl: normalizeExcelDate(tgl), keterangan: ket || '-', pinjam, bayar });
+            parsedPiutang.push({
+              nama,
+              tgl: normalizeExcelDate(tgl),
+              keterangan: ket || '-',
+              pinjam,
+              bayar
+            });
           }
         }
       }
 
+      // 3. Parse Sheet Simpanan Koperasi
       const kopName = workbook.SheetNames.find(n => n.toLowerCase().includes('koperasi') || n.toLowerCase().includes('simpanan'));
       if (kopName) {
         const sheet = workbook.Sheets[kopName];
@@ -1480,47 +1530,92 @@
       if (parsed.koperasi !== null && !isNaN(parsed.koperasi)) { dbState.koperasi = parsed.koperasi; applied = true; }
 
       if (applied) {
+        liveSyncState.isLoaded = true;
         recalculateRunningBalances();
         document.getElementById('dbSourceLabel').textContent = sourceName;
-        updateSyncIndicatorUI(modeLabel);
+        const guideBanner = document.getElementById('syncGuideBanner');
+        if (guideBanner) guideBanner.classList.add('hidden');
+        updateSyncIndicatorUI(modeLabel, true);
         renderCurrentPage();
-        if (!silent) showToast(`Data realtime tersinkron dari ${sourceName}!`);
+        if (!silent) showToast(`Data sinkron dari ${sourceName} (${dbState.cash.length + dbState.rekening.length + dbState.piutang.length} entri)!`);
       }
       return applied;
     }
 
-    function updateSyncIndicatorUI(modeText) {
+    function updateSyncIndicatorUI(modeText, isConnected = true) {
       const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const modeEl = document.getElementById('liveSyncModeText');
       const clockEl = document.getElementById('liveSyncClock');
       const sideLabel = document.getElementById('lastSyncTimeLabel');
       const sideBadge = document.getElementById('sidebarSyncBadge');
+      const sideDot = document.getElementById('sidebarSyncDot');
+      const livePill = document.getElementById('liveSyncPill');
+      const livePing = document.getElementById('liveSyncPing');
+      const liveDot = document.getElementById('liveSyncDot');
 
       if (modeEl) modeEl.textContent = modeText;
       if (clockEl) clockEl.textContent = nowStr;
-      if (sideLabel) sideLabel.textContent = `Update: ${nowStr}`;
-      if (sideBadge) sideBadge.textContent = liveSyncState.mode === 'handle' ? 'LIVE FILE' : 'LIVE';
+      if (sideLabel) sideLabel.textContent = isConnected ? `Update: ${nowStr}` : 'Menunggu file Excel...';
+
+      if (isConnected) {
+        if (sideBadge) { sideBadge.textContent = 'LIVE SYNC'; sideBadge.className = 'text-emerald-400 font-bold text-[11px]'; }
+        if (sideDot) sideDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+        if (livePill) livePill.className = 'inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-xs font-semibold';
+        if (livePing) livePing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+        if (liveDot) liveDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-400';
+      } else {
+        if (sideBadge) { sideBadge.textContent = 'OFFLINE'; sideBadge.className = 'text-amber-400 font-bold text-[11px]'; }
+        if (sideDot) sideDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+      }
     }
 
-    async function connectLiveExcelHandle() {
-      if (!('showOpenFilePicker' in window)) {
-        showToast('File System Access API belum didukung browser ini.', 'error');
-        return;
-      }
-      try {
-        const [handle] = await window.showOpenFilePicker({
-          types: [{ description: 'Excel Database File', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }],
-          multiple: false
-        });
-        liveSyncState.fileHandle = handle;
-        liveSyncState.mode = 'handle';
-        liveSyncState.lastModified = null;
+    // Metode Universal: Mendukung PC (File System Access API) dan HP (Input File Standar)
+    async function triggerUniversalExcelSync() {
+      if ('showOpenFilePicker' in window) {
+        try {
+          const [handle] = await window.showOpenFilePicker({
+            types: [{
+              description: 'Excel Database File',
+              accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx', '.xls'] }
+            }],
+            multiple: false
+          });
+          liveSyncState.fileHandle = handle;
+          liveSyncState.mode = 'handle';
+          liveSyncState.lastModified = null;
 
-        const btn = document.getElementById('btnConnectLiveFile');
-        if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Live: ${escapeHtml(handle.name)}</span>`;
-        await checkFileHandleUpdate(false);
+          const btn = document.getElementById('btnConnectLiveFile');
+          if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Live: ${escapeHtml(handle.name)}</span>`;
+          await checkFileHandleUpdate(false);
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+        }
+      }
+      // Fallback untuk Browser HP (Android/iOS Safari/Chrome)
+      const fileInput = document.getElementById('universalExcelInput');
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+      }
+    }
+
+    async function handleUniversalFileSelect(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        liveSyncState.mode = 'manual';
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+        const ok = applyParsedWorkbook(workbook, file.name, 'File Lokal HP/PC', false);
+        if (ok) {
+          const btn = document.getElementById('btnConnectLiveFile');
+          if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Terhubung: ${escapeHtml(file.name)}</span>`;
+        } else {
+          showToast('Format sheet tidak sesuai dengan struktur database_keuangan_sync.xlsx.', 'error');
+        }
       } catch (err) {
-        if (err.name !== 'AbortError') showToast('Gagal menghubungkan file: ' + err.message, 'error');
+        showToast('Gagal membaca file Excel: ' + err.message, 'error');
       }
     }
 
@@ -1538,35 +1633,77 @@
       } catch (err) { console.warn(err); }
     }
 
-    async function checkHttpExcelUpdate(manual = false) {
-      if (liveSyncState.mode === 'handle') return;
-      if (window.location.protocol === 'file:') {
-        if (manual) showToast('Anda membuka via file://. Klik Hubungkan File Excel Live untuk memilih database_keuangan_sync.xlsx.', 'info');
-        return;
-      }
+    // Membaca ./database_keuangan_sync.xlsx dari folder yang sama (Fetch + XHR Fallback untuk Browser HP)
+    function fetchSameFolderArrayBuffer(url) {
+      return new Promise((resolve, reject) => {
+        fetch(url, { cache: 'no-store' })
+          .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.arrayBuffer();
+          })
+          .then(resolve)
+          .catch(() => {
+            // Fallback XMLHttpRequest untuk sebagian browser HP lokal
+            try {
+              const xhr = new XMLHttpRequest();
+              xhr.open('GET', url, true);
+              xhr.responseType = 'arraybuffer';
+              xhr.onload = function () {
+                if ((xhr.status === 200 || xhr.status === 0) && xhr.response && xhr.response.byteLength > 0) {
+                  resolve(xhr.response);
+                } else {
+                  reject(new Error('XHR gagal'));
+                }
+              };
+              xhr.onerror = () => reject(new Error('XHR error'));
+              xhr.send();
+            } catch (e) {
+              reject(e);
+            }
+          });
+      });
+    }
+
+    async function checkSameFolderExcelUpdate(manual = false) {
+      if (liveSyncState.mode === 'handle' || liveSyncState.mode === 'manual') return;
+
+      const bustUrl = `${EXCEL_RELATIVE_PATH}?v=${Date.now()}`;
       try {
-        const res = await fetch('./database_keuangan_sync.xlsx?t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) return;
-        const buffer = await res.arrayBuffer();
+        const buffer = await fetchSameFolderArrayBuffer(bustUrl);
         const bytes = new Uint8Array(buffer);
         let checksum = bytes.length;
         for (let i = 0; i < bytes.length; i += 37) checksum = (checksum * 31 + bytes[i]) >>> 0;
         const signature = `${bytes.length}|${checksum}`;
 
+        liveSyncState.mode = 'http';
         if (liveSyncState.lastSignature !== signature) {
           const isFirst = liveSyncState.lastSignature === null;
           liveSyncState.lastSignature = signature;
           const workbook = XLSX.read(bytes, { type: 'array' });
-          applyParsedWorkbook(workbook, 'database_keuangan_sync.xlsx', 'Auto-Fetch HTTP', isFirst && !manual);
+          applyParsedWorkbook(workbook, EXCEL_FILENAME, 'Auto-Sync Satu Folder', isFirst && !manual);
         } else if (manual) {
-          showToast('Data sudah paling mutakhir.', 'info');
+          showToast('Data sudah paling mutakhir dari ' + EXCEL_FILENAME, 'info');
         }
-      } catch (err) { console.warn(err); }
+      } catch (err) {
+        if (!liveSyncState.isLoaded) {
+          updateSyncIndicatorUI('Perlu Pilih File (Lokal HP/PC)', false);
+          const guideBanner = document.getElementById('syncGuideBanner');
+          if (guideBanner) guideBanner.classList.remove('hidden');
+          if (manual) {
+            showToast('Akses otomatis diblokir browser lokal. Klik "Muat database_keuangan_sync.xlsx".', 'info');
+          }
+        }
+      }
     }
 
     function forceCheckLiveSync(manual = false) {
-      if (liveSyncState.mode === 'handle') checkFileHandleUpdate(false);
-      else checkHttpExcelUpdate(manual);
+      if (liveSyncState.mode === 'handle') {
+        checkFileHandleUpdate(false);
+      } else if (liveSyncState.mode === 'manual') {
+        triggerUniversalExcelSync();
+      } else {
+        checkSameFolderExcelUpdate(manual);
+      }
     }
 
     function downloadMasterExcel() {
@@ -1580,17 +1717,17 @@
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mutasiRows), 'Mutasi_Cash_Rekening');
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(m.detailedPiutang), 'Piutang_Gabungan');
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{ Pos_Simpanan: 'Tabungan Koperasi', Saldo: m.saldoKoperasi }]), 'Simpanan_Koperasi');
-        XLSX.writeFile(wb, 'database_keuangan_terpadu.xlsx');
-        showToast('Master Excel berhasil diunduh!');
+        XLSX.writeFile(wb, EXCEL_FILENAME);
+        showToast('File ' + EXCEL_FILENAME + ' berhasil diunduh!');
       } catch (err) { showToast('Gagal mendownload Excel.', 'error'); }
     }
 
     function startRealtimeSyncLoop() {
-      checkHttpExcelUpdate(false);
+      checkSameFolderExcelUpdate(false);
       setInterval(() => {
         if (liveSyncState.mode === 'handle') checkFileHandleUpdate(false);
-        else checkHttpExcelUpdate(false);
-      }, 1800);
+        else if (liveSyncState.mode !== 'manual') checkSameFolderExcelUpdate(false);
+      }, 2000);
     }
   </script>
 </body>
