@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistem Keuangan Terpadu</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js & SheetJS (XLSX) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --bg-deep: #070913;
+      --bg-card: rgba(30, 41, 59, 0.72);
+      --border-glass: rgba(255, 255, 255, 0.1);
+      --accent-cyan: #06b6d4;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-violet: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-deep);
+      color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Subtle 3D Cyber-Grid Perspective Background */
+    .bg-cyber-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(6, 182, 212, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(99, 102, 241, 0.045) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 45%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 45%, transparent 100%);
+    }
+
+    /* Ambient 3D Aurora Glow Orbs */
+    .ambient-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(115px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.42;
+      animation: floatOrb 18s ease-in-out infinite alternate;
+    }
+
+    .orb-1 { width: 520px; height: 520px; background: radial-gradient(circle, rgba(6, 182, 212, 0.55), transparent 70%); top: -140px; left: 12%; }
+    .orb-2 { width: 560px; height: 560px; background: radial-gradient(circle, rgba(99, 102, 241, 0.5), transparent 70%); bottom: -160px; right: 4%; animation-delay: -5s; }
+    .orb-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(16, 185, 129, 0.35), transparent 70%); top: 38%; left: 46%; animation-delay: -9s; }
+    .orb-4 { width: 380px; height: 380px; background: radial-gradient(circle, rgba(139, 92, 246, 0.36), transparent 70%); top: 12%; right: 18%; animation-delay: -13s; }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+      100% { transform: translate(35px, -30px) scale(1.1) rotate(12deg); }
+    }
+
+    @property --border-angle {
+      syntax: "<angle>";
+      inherits: true;
+      initial-value: 0deg;
+    }
+
+    @keyframes spinBorder {
+      to { --border-angle: 360deg; }
+    }
+
+    .glass-card {
+      position: relative;
+      background: linear-gradient(155deg, rgba(30, 41, 59, 0.78) 0%, rgba(15, 23, 42, 0.84) 100%);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border-glass);
+      box-shadow: 0 22px 45px -15px rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+      transform-style: preserve-3d;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(420px circle at var(--mouse-x, 50%) var(--mouse-y, 0%), rgba(255, 255, 255, 0.11), rgba(6, 182, 212, 0.05) 35%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1;
+    }
+
+    .glass-card:hover::before { opacity: 1; }
+
+    .glass-card-hover:hover {
+      border-color: rgba(6, 182, 212, 0.42);
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.88), 0 0 32px -6px rgba(6, 182, 212, 0.28), 0 0 18px -6px rgba(139, 92, 246, 0.24), inset 0 1px 0 0 rgba(255, 255, 255, 0.24);
+    }
+
+    .hero-glass {
+      position: relative;
+      background: radial-gradient(circle at 15% 20%, rgba(6, 182, 212, 0.24), transparent 45%), radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.24), transparent 50%), linear-gradient(135deg, rgba(13, 20, 38, 0.92) 0%, rgba(26, 36, 60, 0.82) 50%, rgba(12, 74, 110, 0.42) 100%);
+      backdrop-filter: blur(26px) saturate(190%);
+      -webkit-backdrop-filter: blur(26px) saturate(190%);
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      box-shadow: 0 28px 65px -12px rgba(0, 0, 0, 0.85), 0 0 42px -10px rgba(6, 182, 212, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+    }
+
+    .hero-glass::after {
+      content: "";
+      position: absolute;
+      inset: -1.5px;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: conic-gradient(from var(--border-angle), rgba(6, 182, 212, 0.75), rgba(99, 102, 241, 0.55), rgba(16, 185, 129, 0.75), rgba(139, 92, 246, 0.65), rgba(6, 182, 212, 0.75));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      animation: spinBorder 8s linear infinite;
+    }
+
+    .text-aurora-shimmer {
+      background: linear-gradient(90deg, #ffffff 0%, #67e8f9 25%, #a5b4fc 50%, #6ee7b7 75%, #ffffff 100%);
+      background-size: 220% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shimmerText 6s linear infinite;
+    }
+
+    @keyframes shimmerText {
+      to { background-position: 220% center; }
+    }
+
+    .btn-luxury {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+
+    .btn-luxury::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 80%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+      transform: skewX(-22deg);
+      transition: left 0.55s ease;
+      pointer-events: none;
+    }
+
+    .btn-luxury:hover { transform: translateY(-2px); }
+    .btn-luxury:hover::after { left: 140%; }
+    .btn-luxury:active { transform: translateY(0) scale(0.97); }
+
+    .sidebar-glass {
+      width: 280px;
+      background: linear-gradient(180deg, rgba(10, 15, 30, 0.92) 0%, rgba(7, 10, 22, 0.95) 100%);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-right: 1px solid var(--border-glass);
+      box-shadow: 16px 0 45px rgba(0, 0, 0, 0.65);
+    }
+
+    .nav-item {
+      transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(6, 182, 212, 0.06));
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateX(4px);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.16));
+      border-color: rgba(6, 182, 212, 0.48);
+      box-shadow: 0 10px 24px -6px rgba(6, 182, 212, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .logo-3d {
+      background: linear-gradient(135deg, #06b6d4 0%, #6366f1 45%, #8b5cf6 75%, #10b981 100%);
+      box-shadow: 0 12px 28px -5px rgba(6, 182, 212, 0.65), 0 0 18px rgba(139, 92, 246, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease;
+    }
+
+    .logo-3d:hover { transform: rotateY(14deg) rotateX(8deg) scale(1.05); }
+
+    .page-view {
+      animation: pageEnter 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes pageEnter {
+      0% { opacity: 0; transform: translateY(16px) scale(0.995); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: rgba(7, 9, 19, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.5); }
+
+    .glass-input {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .glass-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+  <!-- Cyber Grid & Ambient Aurora Glow Orbs -->
+  <div class="bg-cyber-grid"></div>
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="ambient-orb orb-3"></div>
+  <div class="ambient-orb orb-4"></div>
+
+  <!-- LOGIN SCREEN (Password-only for Adi Muhtar) -->
+  <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#070913]/95 backdrop-blur-2xl">
+    <div class="glass-card hero-glass w-full max-w-md rounded-3xl p-8 sm:p-10 border border-white/20 text-center relative shadow-2xl">
+      <div class="logo-3d w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-3xl font-extrabold text-white mb-6 shadow-2xl">
+        FF
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-aurora-shimmer mb-2">Selamat Datang, Adi Muhtar</h1>
+      <p class="text-xs sm:text-sm text-slate-300 mb-6">Sistem Keuangan Terpadu — Silakan masukkan password untuk mengakses dashboard eksekutif.</p>
+
+      <form onsubmit="handleLogin(event)" class="space-y-5">
+        <div>
+          <input type="password" id="loginPasswordInput" required placeholder="Masukkan password..." autocomplete="current-password" class="glass-input w-full px-5 py-3.5 rounded-2xl text-center text-lg font-mono-num tracking-widest" />
+        </div>
+        <button type="submit" class="btn-luxury w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white font-extrabold text-base shadow-xl shadow-cyan-500/30">
+          Masuk Sistem
+        </button>
+      </form>
+      <div class="mt-6 text-[11px] text-slate-400 font-mono-num">
+        Live Sync: database_keuangan_sync.xlsx
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER (Hidden until successful login) -->
+  <div id="mainAppContainer" class="hidden min-h-screen flex flex-col">
+    <!-- Mobile Top Header -->
+    <header id="mobileHeader" class="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[#0b1020]/90 backdrop-blur-xl border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="logo-3d w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-white text-base tracking-tight">FF</div>
+        <div>
+          <div class="font-bold text-sm text-white leading-tight">FinFlow 3D</div>
+          <div class="text-[11px] text-cyan-400 font-medium">Adi Muhtar System</div>
+        </div>
+      </div>
+      <button onclick="toggleSidebar()" class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10" aria-label="Buka Menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Mobile Overlay -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden lg:hidden"></div>
+
+    <div class="relative z-10 flex min-h-screen">
+      <!-- Left Sidebar (280px fixed on desktop) -->
+      <aside id="sidebar" class="sidebar-glass fixed lg:sticky top-0 left-0 z-40 h-screen flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0 shrink-0">
+        <div class="p-5 overflow-y-auto">
+          <!-- Logo & Branding -->
+          <div class="flex items-center justify-between mb-6 pb-5 border-b border-white/10">
+            <div class="flex items-center gap-3.5">
+              <div class="logo-3d w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-white text-lg tracking-wider shrink-0">
+                FF
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-extrabold text-lg text-white tracking-tight">FinFlow 3D</span>
+                </div>
+                <p class="text-[11px] uppercase tracking-widest text-cyan-400 font-semibold">Adi Muhtar</p>
+                <p class="text-xs text-slate-400 mt-0.5">Sistem Keuangan Terpadu</p>
+              </div>
+            </div>
+            <button onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Navigation Menu (7 Pages) -->
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-3 mb-2.5">Navigasi Utama</div>
+          <nav class="space-y-1.5" id="sidebarNav">
+            <button data-page="dashboard" onclick="navigateTo('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
+              <span class="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                </svg>
+              </span>
+              <span>Dashboard Utama</span>
+            </button>
+
+            <button data-page="simpanan" onclick="navigateTo('simpanan')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
+              <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5zm0 0h-5a2 2 0 000 4h5" />
+                </svg>
+              </span>
+              <span>Simpanan (Cash & Rek)</span>
+            </button>
+
+            <button data-page="mutasi_cash" onclick="navigateTo('mutasi_cash')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
+              <span class="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </span>
+              <span>Mutasi Cash Global</span>
+            </button>
+
+            <button data-page="mutasi_rekening" onclick="navigateTo('mutasi_rekening')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
+              <span class="w-8 h-8 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="2" y="5" width="20" height="14" rx="2.5" />
+                  <path stroke-linecap="round" d="M2 10h20M6 15h4" />
+                </svg>
+              </span>
+              <span>Mutasi Rekening Global</span>
+            </button>
+
+            <button data-page="rekap_piutang" onclick="navigateTo('rekap_piutang')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
+              <span class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </span>
+              <span>Rekap Piutang</span>
+            </button>
+
+            <button data-page="rinci_piutang" onclick="navigateTo('rinci_piutang')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
+              <span class="w-8 h-8 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </span>
+              <span>Rinci Piutang Gabungan</span>
+            </button>
+
+            <button data-page="laporan" onclick="navigateTo('laporan')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-300">
+              <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              </span>
+              <span>Laporan Rekapan</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Sidebar Footer Status -->
+        <div class="p-4 border-t border-white/10">
+          <div class="glass-card rounded-2xl p-3.5">
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+                <span id="sidebarSyncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Realtime Sync</span>
+              </span>
+              <span id="sidebarSyncBadge" class="text-emerald-400 font-bold text-[11px]">LIVE</span>
+            </div>
+            <div class="text-[11px] text-cyan-300 font-medium truncate" id="dbSourceLabel">database_keuangan_sync.xlsx</div>
+            <div class="text-[10px] text-slate-400 mt-0.5 font-mono-num" id="lastSyncTimeLabel">Sinkron: Aktif</div>
+            <div class="grid grid-cols-2 gap-1.5 mt-2.5">
+              <button onclick="forceCheckLiveSync(true)" class="text-[11px] py-1.5 px-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/30 font-semibold transition">
+                Sync Data
+              </button>
+              <button onclick="handleLogout()" class="text-[11px] py-1.5 px-2 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-400/30 font-semibold transition">
+                Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main id="mainWrapper" class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+        <!-- Top Bar -->
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-7 pb-5 border-b border-white/10">
+          <div>
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium">
+                <span>Adi Muhtar System</span>
+                <span>•</span>
+                <span id="topTotalBadge" class="font-mono-num font-bold text-white">Rp 0</span>
+              </div>
+
+              <!-- Live Sync Status Pill -->
+              <div id="liveSyncPill" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-xs font-semibold">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                </span>
+                <span id="liveSyncModeText">Auto-Fetch (Excel Live)</span>
+                <span class="text-white/30">|</span>
+                <span id="liveSyncClock" class="font-mono-num text-[11px] text-emerald-200">--:--:--</span>
+              </div>
+            </div>
+            <h1 id="pageTitle" class="text-2xl sm:text-3xl font-extrabold text-aurora-shimmer tracking-tight">Dashboard Utama</h1>
+            <p id="pageSubtitle" class="text-sm text-slate-400 mt-1">Ringkasan eksekutif saldo kas, simpanan koperasi, rekening, dan piutang beredar.</p>
+          </div>
+
+          <!-- Top Action Buttons (Connect Live Excel File) -->
+          <div id="topActionButtons" class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button onclick="connectLiveExcelHandle()" id="btnConnectLiveFile" class="btn-luxury inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 hover:from-cyan-500/40 hover:to-indigo-500/40 border border-cyan-400/45 shadow-lg shadow-cyan-500/15 backdrop-blur-md">
+              <svg class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span>Hubungkan File Excel Live</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Page Container -->
+        <div id="pageContainer" class="page-view"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    // =========================================================================
+    // 1. EMBEDDED INITIAL DATABASE (Exact dataset from database_keuangan_sync.xlsx)
+    // =========================================================================
+    const initialDatabase = {"cash":[{"no":1,"tgl":"2024-12-03","rincian":"Awal (Recehan 1)","masuk":1140000,"keluar":0,"saldo":1140000},{"no":2,"tgl":"2024-12-03","rincian":"Awal (Recehan 5k)","masuk":730000,"keluar":0,"saldo":1870000},{"no":3,"tgl":"2024-12-03","rincian":"Awal (Recehan 2k)","masuk":265000,"keluar":0,"saldo":2135000},{"no":4,"tgl":"2024-12-03","rincian":"Simpan Arisan Kampus","masuk":2000000,"keluar":0,"saldo":4135000},{"no":5,"tgl":"2024-12-30","rincian":"Simpan Cash","masuk":1000000,"keluar":0,"saldo":5135000},{"no":6,"tgl":"2025-01-03","rincian":"Simpan Cash","masuk":500000,"keluar":0,"saldo":5635000},{"no":7,"tgl":"2025-01-10","rincian":"Simpan SHU","masuk":1000000,"keluar":0,"saldo":6635000},{"no":8,"tgl":"2025-02-01","rincian":"Biaya Sehari-hari","masuk":0,"keluar":1900000,"saldo":4735000},{"no":9,"tgl":"2025-02-28","rincian":"Pinjam Rifki (Beli Motor)","masuk":0,"keluar":2200000,"saldo":2535000},{"no":10,"tgl":"2025-02-28","rincian":"Biaya Sehari-hari","masuk":0,"keluar":400000,"saldo":2135000},{"no":11,"tgl":"2025-03-27","rincian":"Dana Mudik","masuk":0,"keluar":1455000,"saldo":680000},{"no":12,"tgl":"2025-04-23","rincian":"Simpan Cash","masuk":4000000,"keluar":0,"saldo":4680000},{"no":13,"tgl":"2025-05-08","rincian":"Simpan Arisan","masuk":2450000,"keluar":0,"saldo":7130000},{"no":14,"tgl":"2025-05-08","rincian":"Simpan Recehan 2k","masuk":106000,"keluar":0,"saldo":7236000},{"no":15,"tgl":"2025-05-13","rincian":"Simpan Cash","masuk":550000,"keluar":0,"saldo":7786000},{"no":16,"tgl":"2025-05-23","rincian":"Simpan Cash","masuk":2000000,"keluar":0,"saldo":9786000},{"no":17,"tgl":"2025-05-25","rincian":"Beli Box Speaker 18\"x2","masuk":0,"keluar":1000000,"saldo":8786000},{"no":18,"tgl":"2025-06-04","rincian":"Pulkam (Nikahan Rifki)","masuk":0,"keluar":3000000,"saldo":5786000},{"no":19,"tgl":"2025-06-13","rincian":"Rifki Bayar Hutang","masuk":3000000,"keluar":0,"saldo":8786000},{"no":20,"tgl":"2025-06-13","rincian":"Simpan Cash","masuk":2000000,"keluar":0,"saldo":10786000},{"no":21,"tgl":"2025-06-23","rincian":"Simpan YouTube","masuk":4000000,"keluar":0,"saldo":14786000},{"no":22,"tgl":"2025-06-23","rincian":"Simpan Recehan 2k","masuk":44000,"keluar":0,"saldo":14830000},{"no":23,"tgl":"2025-06-30","rincian":"Simpan Cash","masuk":700000,"keluar":0,"saldo":15530000},{"no":24,"tgl":"2025-07-07","rincian":"Simpan Manggung","masuk":1000000,"keluar":0,"saldo":16530000},{"no":25,"tgl":"2025-07-07","rincian":"Ema Bayar Hutang","masuk":5000000,"keluar":0,"saldo":21530000},{"no":26,"tgl":"2025-07-14","rincian":"Hasil Kopi 2025 (Teh Yuyun)","masuk":4300000,"keluar":0,"saldo":25830000},{"no":27,"tgl":"2025-07-14","rincian":"Bayar HP Infinix Ali","masuk":2700000,"keluar":0,"saldo":28530000},{"no":28,"tgl":"2025-07-22","rincian":"Simpan YouTube","masuk":4000000,"keluar":0,"saldo":32530000},{"no":29,"tgl":"2025-07-25","rincian":"Beli iPhone","masuk":0,"keluar":5500000,"saldo":27030000},{"no":30,"tgl":"2025-07-25","rincian":"Beli iPhone Nazila","masuk":0,"keluar":2000000,"saldo":25030000},{"no":31,"tgl":"2025-07-25","rincian":"Angsuran HP Akbar","masuk":200000,"keluar":0,"saldo":25230000},{"no":32,"tgl":"2025-08-20","rincian":"Biaya Sehari-hari","masuk":0,"keluar":1778000,"saldo":23452000},{"no":33,"tgl":"2025-08-21","rincian":"Biaya Sehari-hari","masuk":0,"keluar":400000,"saldo":23052000},{"no":34,"tgl":"2025-08-22","rincian":"Simpan Tabungan","masuk":2200000,"keluar":0,"saldo":25252000},{"no":35,"tgl":"2025-08-25","rincian":"Simpan Buket + Manggung","masuk":1800000,"keluar":0,"saldo":27052000},{"no":36,"tgl":"2025-08-26","rincian":"Ijal Bayar Motor","masuk":8000000,"keluar":0,"saldo":35052000},{"no":37,"tgl":"2025-08-29","rincian":"Ambil Cash 5k","masuk":0,"keluar":180000,"saldo":34872000},{"no":38,"tgl":"2025-09-01","rincian":"Beli Motor ADV 160","masuk":0,"keluar":34000000,"saldo":872000},{"no":39,"tgl":"2025-09-08","rincian":"Simpan Cash","masuk":1590000,"keluar":0,"saldo":2462000},{"no":40,"tgl":"2025-09-08","rincian":"Simpan Recehan 2k","masuk":108000,"keluar":0,"saldo":2570000},{"no":41,"tgl":"2025-09-16","rincian":"Pinjam Ema","masuk":0,"keluar":1000000,"saldo":1570000},{"no":42,"tgl":"2025-09-19","rincian":"Saweran Motor","masuk":0,"keluar":500000,"saldo":1070000},{"no":43,"tgl":"2025-10-22","rincian":"Simpan YouTube","masuk":2000000,"keluar":0,"saldo":3070000},{"no":44,"tgl":"2025-11-25","rincian":"Simpan YouTube","masuk":2000000,"keluar":0,"saldo":5070000},{"no":45,"tgl":"2025-12-04","rincian":"Simpan Koperasi","masuk":2500000,"keluar":0,"saldo":7570000},{"no":46,"tgl":"2025-12-08","rincian":"Simpan Job","masuk":685000,"keluar":0,"saldo":8255000},{"no":47,"tgl":"2025-12-12","rincian":"Angsuran Bang Zul","masuk":1000000,"keluar":0,"saldo":9255000},{"no":48,"tgl":"2025-12-22","rincian":"Simpan Manggung","masuk":205000,"keluar":0,"saldo":9460000},{"no":49,"tgl":"2025-12-22","rincian":"Simpan YouTube","masuk":4000000,"keluar":0,"saldo":13460000},{"no":50,"tgl":"2025-12-24","rincian":"Simpan Gaji","masuk":1000000,"keluar":0,"saldo":14460000},{"no":51,"tgl":"2025-12-29","rincian":"Simpan Manggung","masuk":350000,"keluar":0,"saldo":14810000},{"no":52,"tgl":"2026-01-17","rincian":"Angsuran Bang Zul","masuk":2000000,"keluar":0,"saldo":16810000},{"no":53,"tgl":"2026-02-23","rincian":"Simpan YouTube","masuk":5000000,"keluar":0,"saldo":21810000},{"no":54,"tgl":"2026-02-23","rincian":"Uang Baru 5k","masuk":40000,"keluar":0,"saldo":21850000},{"no":55,"tgl":"2026-02-26","rincian":"Sisa Dana Ka Nurma","masuk":500000,"keluar":0,"saldo":22350000},{"no":56,"tgl":"2026-02-27","rincian":"Simpan Gaji","masuk":2000000,"keluar":0,"saldo":24350000},{"no":57,"tgl":"2026-03-09","rincian":"Tukar Uang Baru","masuk":206000,"keluar":0,"saldo":24556000},{"no":58,"tgl":"2026-03-10","rincian":"Ambil uang Baru","masuk":0,"keluar":550000,"saldo":24006000},{"no":59,"tgl":"2026-04-15","rincian":"Ambil Keperluan mudk & sehari hari","masuk":0,"keluar":3006000,"saldo":21000000},{"no":60,"tgl":"2026-04-22","rincian":"Simpan dari YT","masuk":4500000,"keluar":0,"saldo":25500000},{"no":61,"tgl":"2026-04-27","rincian":"Simban dari Job","masuk":500000,"keluar":0,"saldo":26000000},{"no":62,"tgl":"2026-04-29","rincian":"Simpan dari Gajian","masuk":2500000,"keluar":0,"saldo":28500000},{"no":63,"tgl":"2026-05-22","rincian":"Simpan dari YT","masuk":500000,"keluar":0,"saldo":29000000},{"no":64,"tgl":"2026-05-29","rincian":"Dari koprasi (dana cadangan)","masuk":3000000,"keluar":0,"saldo":32000000},{"no":65,"tgl":"2026-06-02","rincian":"Dari Manggung","masuk":1000000,"keluar":0,"saldo":33000000},{"no":66,"tgl":"2026-06-05","rincian":"Dipinjam Pak Afit","masuk":0,"keluar":3000000,"saldo":30000000},{"no":67,"tgl":"2026-06-08","rincian":"Simpan dari Manggung","masuk":2000000,"keluar":0,"saldo":32000000},{"no":68,"tgl":"2026-06-12","rincian":"Tabung ke Koperasi","masuk":0,"keluar":1000000,"saldo":31000000},{"no":69,"tgl":"2026-06-15","rincian":"Simpan dari Manggung","masuk":1500000,"keluar":0,"saldo":32500000},{"no":70,"tgl":"2026-06-18","rincian":"Angsuran Bang Zul","masuk":1000000,"keluar":0,"saldo":33500000},{"no":71,"tgl":"2026-06-22","rincian":"Dari Manggung","masuk":1000000,"keluar":0,"saldo":34500000},{"no":72,"tgl":"2026-06-25","rincian":"Dari YT","masuk":2500000,"keluar":0,"saldo":37000000},{"no":73,"tgl":"2026-07-01","rincian":"Pinjam Mamak Subhan","masuk":0,"keluar":15000000,"saldo":22000000},{"no":74,"tgl":"2026-07-06","rincian":"Dari Manggung","masuk":1000000,"keluar":0,"saldo":23000000},{"no":75,"tgl":"2026-07-21","rincian":"Mamak Subhan Bayar","masuk":15000000,"keluar":0,"saldo":38000000},{"no":76,"tgl":"2026-07-21","rincian":"Dipinjam Bang zul (Beli Mixer Ashley)","masuk":0,"keluar":1000000,"saldo":37000000},{"no":77,"tgl":"2026-08-01","rincian":"Ambul buat Buket (Kado Nazila)","masuk":0,"keluar":500000,"saldo":36500000},{"no":78,"tgl":"2026-08-04","rincian":"Simpan Cash","masuk":500000,"keluar":0,"saldo":37000000},{"no":79,"tgl":"2026-08-11","rincian":"Simpan Cash","masuk":300000,"keluar":0,"saldo":37300000},{"no":80,"tgl":"2026-08-31","rincian":"Simpan Cash","masuk":500000,"keluar":0,"saldo":37800000},{"no":81,"tgl":"2026-09-14","rincian":"Tukar Cash ke Rek (Dari Nazila)","masuk":0,"keluar":500000,"saldo":37300000},{"no":82,"tgl":"2026-09-14","rincian":"Tukar dari Rek Ke Cash (Hasil Rumah)","masuk":0,"keluar":25000000,"saldo":12300000},{"no":83,"tgl":"2026-09-14","rincian":"Tukar Cash (Nazila Beli Emas 4 gr)","masuk":9400000,"keluar":0,"saldo":21700000},{"no":84,"tgl":"2026-09-22","rincian":"Tukar Cash","masuk":0,"keluar":700000,"saldo":21000000},{"no":85,"tgl":"2026-10-01","rincian":"Tukar Cash","masuk":500000,"keluar":0,"saldo":21500000},{"no":86,"tgl":"2026-10-05","rincian":"Simpan dari Manggung","masuk":1500000,"keluar":0,"saldo":23000000},{"no":87,"tgl":"2026-10-10","rincian":"Tukar Cash","masuk":2500000,"keluar":0,"saldo":25500000},{"no":88,"tgl":"2026-10-10","rincian":"Pake dulu biaya lamaran","masuk":0,"keluar":3000000,"saldo":22500000},{"no":89,"tgl":"2026-10-20","rincian":"Ongkos ema travel 3 orang pp","masuk":0,"keluar":3000000,"saldo":19500000},{"no":90,"tgl":"2026-10-16","rincian":"Tukar Cash [ 1 ]","masuk":0,"keluar":500000,"saldo":19000000},{"no":91,"tgl":"2026-10-25","rincian":"Pinjem tab Nazila","masuk":1000000,"keluar":0,"saldo":20000000},{"no":92,"tgl":"2026-10-25","rincian":"Hjual Emas (di petir)","masuk":5000000,"keluar":0,"saldo":25000000},{"no":93,"tgl":"2026-10-25","rincian":"Uang ke Mahar ke Bapak","masuk":0,"keluar":25000000,"saldo":0},{"no":93,"tgl":"2026-10-28","rincian":"Tukar Cash [2]","masuk":4200000,"keluar":0,"saldo":4200000},{"no":94,"tgl":"2026-11-12","rincian":"Pakai pribadi","masuk":300000,"keluar":0,"saldo":4500000}],"rekening":[{"no":1,"tgl":"2026-07-22","rincian":"Dari YT","masuk":10000000,"keluar":0,"saldo":10000000},{"no":2,"tgl":"2026-07-30","rincian":"Dari Paroan Kebon","masuk":3800000,"keluar":0,"saldo":13800000},{"no":3,"tgl":"2026-07-30","rincian":"Simpan","masuk":200000,"keluar":0,"saldo":14000000},{"no":4,"tgl":"2026-08-03","rincian":"Dipinjam k Nurma","masuk":0,"keluar":1000000,"saldo":13000000},{"no":5,"tgl":"2026-08-03","rincian":"Simpan dari Manggung Bekasi","masuk":1500000,"keluar":0,"saldo":14500000},{"no":6,"tgl":"2026-08-09","rincian":"Simpan","masuk":2000000,"keluar":0,"saldo":16500000},{"no":7,"tgl":"2026-08-09","rincian":"Simpan","masuk":1000000,"keluar":0,"saldo":17500000},{"no":8,"tgl":"2026-08-12","rincian":"Simpan","masuk":500000,"keluar":0,"saldo":18000000},{"no":9,"tgl":"2026-08-25","rincian":"Simpan dari YT","masuk":8000000,"keluar":0,"saldo":26000000},{"no":10,"tgl":"2026-09-09","rincian":"Dari Jual Rumah","masuk":70000000,"keluar":0,"saldo":96000000},{"no":11,"tgl":"2026-09-10","rincian":"Bagi harta hasil rumah","masuk":0,"keluar":26636900,"saldo":69363100},{"no":12,"tgl":"2026-09-10","rincian":"Bagi ke Ema","masuk":0,"keluar":1000000,"saldo":68363100},{"no":13,"tgl":"2026-09-10","rincian":"Bagi ke Rifki","masuk":0,"keluar":500000,"saldo":67863100},{"no":14,"tgl":"2026-09-10","rincian":"Bagi ke A Amud","masuk":0,"keluar":500000,"saldo":67363100},{"no":15,"tgl":"2026-09-10","rincian":"Bagi ke Eneh","masuk":0,"keluar":500000,"saldo":66863100},{"no":16,"tgl":"2026-09-12","rincian":"Bg Agus Kelabay Pinjam","masuk":0,"keluar":4000000,"saldo":62863100},{"no":17,"tgl":"2026-09-14","rincian":"Tukar Cash ke Rek (dari Nazila)","masuk":500000,"keluar":0,"saldo":63363100},{"no":18,"tgl":"2026-09-14","rincian":"Simpan (Ke Ema Hasil Rumah )","masuk":0,"keluar":25000000,"saldo":38363100},{"no":19,"tgl":"2026-09-14","rincian":"Tukar dari Rek Ke Cash (Hasil Rumah)","masuk":25000000,"keluar":0,"saldo":63363100},{"no":20,"tgl":"2026-09-14","rincian":"Beli Emas Kawin (Mahar)","masuk":0,"keluar":29285000,"saldo":34078100},{"no":21,"tgl":"2026-09-14","rincian":"Tukar Cash (Nazila Beli Emas 4 gr)","masuk":0,"keluar":9400000,"saldo":24678100},{"no":22,"tgl":"2026-09-18","rincian":"Simpan dari teteh bayar HP","masuk":1200000,"keluar":0,"saldo":25878100},{"no":23,"tgl":"2026-09-18","rincian":"Simpan TB","masuk":800000,"keluar":0,"saldo":26678100},{"no":24,"tgl":"2026-09-22","rincian":"Tukar Cash","masuk":700000,"keluar":0,"saldo":27378100},{"no":25,"tgl":"2026-09-23","rincian":"Simpan Cash","masuk":4000000,"keluar":0,"saldo":31378100},{"no":26,"tgl":"2026-09-23","rincian":"TF Jalan ema ka Metro","masuk":0,"keluar":300000,"saldo":31078100},{"no":27,"tgl":"2026-09-27","rincian":"Simpan dari Gajian","masuk":3000000,"keluar":0,"saldo":34078100},{"no":28,"tgl":"2026-10-01","rincian":"Tukar Cash","masuk":0,"keluar":500000,"saldo":33578100},{"no":29,"tgl":"2026-10-01","rincian":"Simpan saldo","masuk":366323,"keluar":0,"saldo":33944423},{"no":30,"tgl":"2026-10-01","rincian":"pakai kirim ke bang zul","masuk":0,"keluar":500000,"saldo":33444423},{"no":31,"tgl":"2026-10-10","rincian":"Tukar Cash","masuk":0,"keluar":2500000,"saldo":30944423},{"no":32,"tgl":"2026-10-10","rincian":"Bang Agus Bayar","masuk":3000000,"keluar":0,"saldo":33944423},{"no":33,"tgl":"2026-10-14","rincian":"Biaya dekor lamaran","masuk":0,"keluar":1000000,"saldo":32944423},{"no":34,"tgl":"2026-10-16","rincian":"Tukar Cash [ 1 ]","masuk":500000,"keluar":0,"saldo":33444423},{"no":35,"tgl":"2026-10-16","rincian":"Tukar cash koperasi","masuk":0,"keluar":1415000,"saldo":32029423},{"no":36,"tgl":"2026-10-20","rincian":"Biaya keperluan lamaran","masuk":0,"keluar":2570000,"saldo":29459423},{"no":37,"tgl":"2026-10-20","rincian":"Biaya seserahan (tf)","masuk":0,"keluar":5000000,"saldo":24459423},{"no":38,"tgl":"2026-10-22","rincian":"Dari youtube","masuk":8400000,"keluar":0,"saldo":32859423},{"no":39,"tgl":"2026-10-05","rincian":"Shopee Pay (Camera Canon)","masuk":0,"keluar":15251349,"saldo":17608074},{"no":40,"tgl":"2026-10-25","rincian":"Uang ke Mahar ke Bapak","masuk":0,"keluar":15000000,"saldo":2608074},{"no":41,"tgl":"2026-10-25","rincian":"Biaya Preweding & jalan","masuk":0,"keluar":1000000,"saldo":1608074},{"no":42,"tgl":"2026-10-28","rincian":"Simpan dari gajian","masuk":4000000,"keluar":0,"saldo":5608074},{"no":43,"tgl":"2026-10-28","rincian":"Tukar Cash [2]","masuk":0,"keluar":4200000,"saldo":1408074},{"no":44,"tgl":"2026-10-28","rincian":"Ambil cash","masuk":0,"keluar":150000,"saldo":1258074},{"no":45,"tgl":"2026-10-28","rincian":"Ambil cash","masuk":0,"keluar":1200000,"saldo":58074},{"no":46,"tgl":"2026-11-11","rincian":"Bang zul bayar angsuran","masuk":4660000,"keluar":0,"saldo":4718074},{"no":47,"tgl":"2026-11-12","rincian":"Ambil cash","masuk":0,"keluar":1050000,"saldo":3668074}],"piutang":[{"nama":"Bang Agus Kelabay","tgl":"2026-09-12","keterangan":"Pinjam (Proyek Ngurus Tanah dkt Torabika)bayar bln des 2026","pinjam":4000000,"bayar":0},{"nama":"Bang Agus Kelabay","tgl":"2026-10-10","keterangan":"Bayar","pinjam":0,"bayar":3000000},{"nama":"Bang Zulkarnain","tgl":"2025-01-11","keterangan":"PINJAM (Untuk Melunasi PJ di Luar) +ADM","pinjam":32160000,"bayar":0},{"nama":"Bang Zulkarnain","tgl":"2025-03-14","keterangan":"Bayar Cash","pinjam":0,"bayar":2500000},{"nama":"Bang Zulkarnain","tgl":"2025-04-11","keterangan":"Bayar Cash","pinjam":0,"bayar":2500000},{"nama":"Bang Zulkarnain","tgl":"2025-05-12","keterangan":"Bayar Cash","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2025-06-12","keterangan":"Bayar Tf (by Nazila)","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2025-08-10","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2025-08-10","keterangan":"Bayar Cash (uang box speaker)","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2025-09-12","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2025-10-10","keterangan":"Bayar Cash","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2025-11-14","keterangan":"Bayar Cash","pinjam":0,"bayar":1500000},{"nama":"Bang Zulkarnain","tgl":"2025-12-12","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-01-17","keterangan":"Bayar Cash","pinjam":0,"bayar":2000000},{"nama":"Bang Zulkarnain","tgl":"2026-02-14","keterangan":"Bayar Cash","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-03-17","keterangan":"Bayar Cash (sblm mudik)","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-04-06","keterangan":"Pinjam (bayar PLN)","pinjam":2500000,"bayar":0},{"nama":"Bang Zulkarnain","tgl":"2026-04-18","keterangan":"Bayar Cash","pinjam":0,"bayar":1500000},{"nama":"Bang Zulkarnain","tgl":"2026-06-18","keterangan":"Bayar (TF)","pinjam":0,"bayar":1000000},{"nama":"Bang Zulkarnain","tgl":"2026-07-21","keterangan":"Pinjam (Beli Mixer Audio)","pinjam":1000000,"bayar":0},{"nama":"Bang Zulkarnain","tgl":"2026-11-11","keterangan":"Bayar Tf (by Nazila)","pinjam":0,"bayar":4660000},{"nama":"Kak Nurma","tgl":"2024-07-12","keterangan":"Pinjam untuk bayar tagihan motor","pinjam":2000000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-07-06","keterangan":"Pinjam untuk Berobat Oyot (Cash)","pinjam":300000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-07-17","keterangan":"Bayar via Transfer","pinjam":0,"bayar":300000},{"nama":"Kak Nurma","tgl":"2025-10-01","keterangan":"Pinjam untuk Angsuran Motor","pinjam":350000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-10-11","keterangan":"Pinjam Transfer ke DANA (Beli Pampers)","pinjam":200000,"bayar":0},{"nama":"Kak Nurma","tgl":"2025-12-08","keterangan":"Bayar Cash","pinjam":0,"bayar":200000},{"nama":"Kak Nurma","tgl":"2026-02-24","keterangan":"Pinjam untuk Mudik (Nenek Meninggal)","pinjam":3000000,"bayar":0},{"nama":"Kak Nurma","tgl":"2026-02-25","keterangan":"Bayar (Transfer via Nazila)","pinjam":0,"bayar":5350000},{"nama":"Kak Nurma","tgl":"2026-08-03","keterangan":"Pinjanm (bayar 3bln)","pinjam":1000000,"bayar":0},{"nama":"A Mahmud","tgl":"2022-01-28","keterangan":"Sisa Pinjam sebelumya","pinjam":1000000,"bayar":0},{"nama":"A Mahmud","tgl":"2022-07-25","keterangan":"PINJAM (GADAI KEBON) JUNI 2022 - JUNI 2025 (3TH)","pinjam":5000000,"bayar":0},{"nama":"A Mahmud","tgl":"2022-08-09","keterangan":"PINJAM (GADAI KEBON) JUNI 2022 - JUNI 2025 (3TH)","pinjam":4000000,"bayar":0},{"nama":"A Mahmud","tgl":"2023-02-07","keterangan":"PINJAM BUAT ONGKOSK KE Jakarta teh ani","pinjam":500000,"bayar":0},{"nama":"A Mahmud","tgl":"2023-04-02","keterangan":"BAYAR TGL PINJAMAN TGL 7/2/23","pinjam":0,"bayar":500000}],"koperasi":900000};
+
+    let dbState = JSON.parse(JSON.stringify(initialDatabase));
+    let currentPage = 'dashboard';
+    let barChartInstance = null;
+    let doughnutChartInstance = null;
+
+    let liveSyncState = {
+      mode: 'snapshot',
+      fileHandle: null,
+      lastModified: null,
+      lastSignature: null
+    };
+
+    let filterState = {
+      cashSearch: '',
+      rekSearch: '',
+      piutangSearch: '',
+      piutangBorrower: 'ALL'
+    };
+
+    // =========================================================================
+    // 2. AUTHENTICATION (Password: adim)
+    // =========================================================================
+    function handleLogin(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('loginPasswordInput').value;
+      if (pwd === 'adim') {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainAppContainer').classList.remove('hidden');
+        showToast('Selamat datang, Adi Muhtar!');
+        recalculateRunningBalances();
+        renderCurrentPage();
+        startRealtimeSyncLoop();
+      } else {
+        showToast('Password salah! Silakan coba lagi.', 'error');
+        document.getElementById('loginPasswordInput').value = '';
+      }
+    }
+
+    function handleLogout() {
+      document.getElementById('mainAppContainer').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('loginPasswordInput').value = '';
+      showToast('Anda telah keluar dari sistem.');
+    }
+
+    // =========================================================================
+    // 3. FORMATTING & HELPERS
+    // =========================================================================
+    function formatRupiah(amount) {
+      const num = Number(amount) || 0;
+      const isNegative = num < 0;
+      const absFormatted = Math.abs(Math.round(num)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return (isNegative ? '-Rp ' : 'Rp ') + absFormatted;
+    }
+
+    function escapeHtml(text) {
+      const str = String(text ?? '');
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function recalculateRunningBalances() {
+      let cashBal = 0;
+      dbState.cash.forEach((item, idx) => {
+        item.no = idx + 1;
+        item.masuk = Number(item.masuk) || 0;
+        item.keluar = Number(item.keluar) || 0;
+        cashBal += item.masuk - item.keluar;
+        item.saldo = cashBal;
+      });
+
+      let rekBal = 0;
+      dbState.rekening.forEach((item, idx) => {
+        item.no = idx + 1;
+        item.masuk = Number(item.masuk) || 0;
+        item.keluar = Number(item.keluar) || 0;
+        rekBal += item.masuk - item.keluar;
+        item.saldo = rekBal;
+      });
+    }
+
+    function getMetrics() {
+      recalculateRunningBalances();
+
+      const saldoCash = dbState.cash.length > 0 ? dbState.cash[dbState.cash.length - 1].saldo : 0;
+      const saldoRekening = dbState.rekening.length > 0 ? dbState.rekening[dbState.rekening.length - 1].saldo : 0;
+      const saldoKoperasi = Number(dbState.koperasi) || 0;
+      const totalSimpanan = saldoCash + saldoRekening + saldoKoperasi;
+
+      const borrowerMap = new Map();
+      const detailedPiutang = dbState.piutang.map((row, index) => {
+        const nama = (row.nama || 'Tanpa Nama').trim();
+        const pinjam = Number(row.pinjam) || 0;
+        const bayar = Number(row.bayar) || 0;
+
+        if (!borrowerMap.has(nama)) {
+          borrowerMap.set(nama, { nama, totalPinjam: 0, totalBayar: 0, sisa: 0, count: 0 });
+        }
+        const entry = borrowerMap.get(nama);
+        entry.totalPinjam += pinjam;
+        entry.totalBayar += bayar;
+        entry.sisa = entry.totalPinjam - entry.totalBayar;
+        entry.count += 1;
+
+        return {
+          no: index + 1,
+          nama,
+          tgl: row.tgl || '-',
+          keterangan: row.keterangan || '-',
+          pinjam,
+          bayar,
+          sisaAkhir: entry.sisa
+        };
+      });
+
+      const borrowerSummary = Array.from(borrowerMap.values());
+      const totalPiutang = borrowerSummary.reduce((acc, b) => acc + Math.max(0, b.sisa), 0);
+      const activeBorrowers = borrowerSummary.filter(b => b.sisa > 0).length;
+      const totalAktiva = totalSimpanan + totalPiutang;
+      const totalTransaksi = dbState.cash.length + dbState.rekening.length + dbState.piutang.length;
+
+      return {
+        saldoCash,
+        saldoRekening,
+        saldoKoperasi,
+        totalSimpanan,
+        totalPiutang,
+        totalAktiva,
+        borrowerSummary,
+        detailedPiutang,
+        activeBorrowers,
+        totalBorrowers: borrowerSummary.length,
+        totalTransaksi
+      };
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const accentBorder = type === 'success' ? 'border-emerald-400/40 bg-slate-900/95 text-emerald-300' : type === 'error' ? 'border-rose-400/40 bg-slate-900/95 text-rose-300' : 'border-cyan-400/40 bg-slate-900/95 text-cyan-300';
+
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border ${accentBorder} backdrop-blur-xl shadow-2xl text-sm font-medium transition-all duration-300`;
+      toast.innerHTML = `
+        <span class="w-2.5 h-2.5 rounded-full ${type === 'success' ? 'bg-emerald-400' : type === 'error' ? 'bg-rose-400' : 'bg-cyan-400'}"></span>
+        <span>${escapeHtml(message)}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // =========================================================================
+    // 4. NAVIGATION & RESPONSIVE SIDEBAR
+    // =========================================================================
+    const pageMeta = {
+      dashboard: { title: 'Dashboard Utama', subtitle: 'Ringkasan eksekutif saldo saat ini, komposisi aktiva, dan statistik seluruh transaksi.' },
+      simpanan: { title: 'Simpanan (Cash & Rek)', subtitle: 'Rincian posisi saldo likuid pada Tabunganku Cash, Tabunganku Rekening, dan Tabungan Koperasi.' },
+      mutasi_cash: { title: 'Mutasi Cash Global', subtitle: 'Buku besar kronologis arus kas masuk & keluar tunai fisik beserta saldo berjalan.' },
+      mutasi_rekening: { title: 'Mutasi Rekening Global', subtitle: 'Buku besar kronologis transaksi rekening bank digital beserta saldo berjalan.' },
+      rekap_piutang: { title: 'Rekap Piutang', subtitle: 'Daftar ringkas posisi piutang seluruh peminjam lengkap dengan status aktif & lunas.' },
+      rinci_piutang: { title: 'Rinci Piutang Gabungan', subtitle: 'Satu sheet terpadu riwayat pinjaman dan angsuran lintas peminjam dengan filter instan.' },
+      laporan: { title: 'Laporan Rekapan', subtitle: 'Neraca keuangan eksekutif siap cetak serta ekspor Master Excel multi-sheet.' }
+    };
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isClosed = sidebar.classList.contains('-translate-x-full');
+      if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function navigateTo(pageKey) {
+      currentPage = pageKey;
+      document.querySelectorAll('#sidebarNav .nav-item').forEach(btn => {
+        if (btn.dataset.page === pageKey) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      const meta = pageMeta[pageKey] || pageMeta.dashboard;
+      document.getElementById('pageTitle').textContent = meta.title;
+      document.getElementById('pageSubtitle').textContent = meta.subtitle;
+
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+
+      renderCurrentPage();
+    }
+
+    // =========================================================================
+    // 5. PAGE RENDERERS (7 PAGES)
+    // =========================================================================
+    function renderCurrentPage() {
+      const m = getMetrics();
+      document.getElementById('topTotalBadge').textContent = formatRupiah(m.totalAktiva);
+
+      const container = document.getElementById('pageContainer');
+      container.classList.remove('page-view');
+      void container.offsetWidth;
+      container.classList.add('page-view');
+
+      switch (currentPage) {
+        case 'dashboard': renderDashboard(container, m); break;
+        case 'simpanan': renderSimpanan(container, m); break;
+        case 'mutasi_cash': renderMutasiCash(container, m); break;
+        case 'mutasi_rekening': renderMutasiRekening(container, m); break;
+        case 'rekap_piutang': renderRekapPiutang(container, m); break;
+        case 'rinci_piutang': renderRinciPiutang(container, m); break;
+        case 'laporan': renderLaporan(container, m); break;
+      }
+
+      attach3DTiltEffects();
+    }
+
+    function attach3DTiltEffects() {
+      document.querySelectorAll('.glass-card, .hero-glass').forEach(card => {
+        if (card.dataset.tiltBound === '1') return;
+        card.dataset.tiltBound = '1';
+
+        card.addEventListener('mousemove', e => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--mouse-x', `${x}px`);
+          card.style.setProperty('--mouse-y', `${y}px`);
+
+          if (card.classList.contains('glass-card-hover')) {
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = ((y - centerY) / centerY) * -4.5;
+            const rotateY = ((x - centerX) / centerX) * 4.5;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
+          }
+        });
+
+        card.addEventListener('mouseleave', () => {
+          if (card.classList.contains('glass-card-hover')) card.style.transform = '';
+        });
+      });
+    }
+
+    // --- PAGE 1: DASHBOARD UTAMA ---
+    function renderDashboard(container, m) {
+      const lastCash = dbState.cash[dbState.cash.length - 1];
+      const lastRek = dbState.rekening[dbState.rekening.length - 1];
+      const lastPiutang = dbState.piutang[dbState.piutang.length - 1];
+
+      container.innerHTML = `
+        <div class="hero-glass rounded-3xl p-6 sm:p-8 mb-7 relative overflow-hidden">
+          <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-center relative z-10">
+            <div class="xl:col-span-7">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-400/15 border border-cyan-400/35 text-cyan-300 text-xs font-bold mb-3 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                SALDO SAAT INI PALING BESAR & TOTAL AKTIVA
+              </div>
+              <div class="text-xs sm:text-sm uppercase tracking-wider text-slate-300 font-semibold">Total Keseluruhan Aktiva (Likuid + Piutang)</div>
+              <div class="font-mono-num text-4xl sm:text-5xl lg:text-6xl font-extrabold text-aurora-shimmer tracking-tight mt-1.5 drop-shadow-[0_6px_24px_rgba(6,182,212,0.32)]">
+                ${formatRupiah(m.totalAktiva)}
+              </div>
+              <div class="mt-4 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
+                <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/35 text-emerald-200">
+                  Saldo Simpanan Likuid: <strong class="font-mono-num text-emerald-300">${formatRupiah(m.totalSimpanan)}</strong>
+                </span>
+                <span class="px-3.5 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-400/35 text-indigo-200 font-mono-num">
+                  ${m.totalTransaksi} Transaksi Lintas Sheet
+                </span>
+              </div>
+            </div>
+
+            <div class="xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2.5">
+              <div class="p-3.5 rounded-2xl bg-slate-950/65 border border-cyan-400/20 hover:border-cyan-400/50 transition flex items-center justify-between">
+                <div>
+                  <div class="text-xs text-slate-400">Cash Tunai (${dbState.cash.length} mutasi)</div>
+                  <div class="font-mono-num text-base sm:text-lg font-bold text-cyan-400 mt-0.5">${formatRupiah(m.saldoCash)}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-xs font-bold">Cash</span>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-slate-950/65 border border-indigo-400/20 hover:border-indigo-400/50 transition flex items-center justify-between">
+                <div>
+                  <div class="text-xs text-slate-400">Rekening Bank (${dbState.rekening.length} mutasi)</div>
+                  <div class="font-mono-num text-base sm:text-lg font-bold text-indigo-400 mt-0.5">${formatRupiah(m.saldoRekening)}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-bold">Rekening</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5">
+                <div class="p-3 rounded-2xl bg-slate-950/65 border border-emerald-400/20 hover:border-emerald-400/50 transition">
+                  <div class="text-[11px] text-slate-400">Simpanan Koperasi</div>
+                  <div class="font-mono-num text-sm sm:text-base font-bold text-emerald-400 mt-0.5">${formatRupiah(m.saldoKoperasi)}</div>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-950/65 border border-amber-400/20 hover:border-amber-400/50 transition">
+                  <div class="text-[11px] text-slate-400">Piutang Beredar</div>
+                  <div class="font-mono-num text-sm sm:text-base font-bold text-amber-400 mt-0.5">${formatRupiah(m.totalPiutang)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-7">
+          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-cyan-400">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Keseluruhan Aktiva</span>
+              <span class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </span>
+            </div>
+            <div class="font-mono-num text-2xl font-extrabold text-white">${formatRupiah(m.totalAktiva)}</div>
+            <p class="text-xs text-cyan-300 mt-2">Simpanan + Piutang Beredar</p>
+          </div>
+
+          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-emerald-400">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Simpanan</span>
+              <span class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+              </span>
+            </div>
+            <div class="font-mono-num text-2xl font-extrabold text-emerald-400">${formatRupiah(m.totalSimpanan)}</div>
+            <p class="text-xs text-slate-400 mt-2">Cash + Rekening + Koperasi</p>
+          </div>
+
+          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-indigo-400">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Piutang Beredar</span>
+              <span class="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
+              </span>
+            </div>
+            <div class="font-mono-num text-2xl font-extrabold text-indigo-400">${formatRupiah(m.totalPiutang)}</div>
+            <p class="text-xs text-slate-400 mt-2">${dbState.piutang.length} riwayat mutasi piutang</p>
+          </div>
+
+          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-amber-400">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Jumlah Peminjam / Akun</span>
+              <span class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              </span>
+            </div>
+            <div class="font-mono-num text-2xl font-extrabold text-amber-400">${m.activeBorrowers} Peminjam / 3 Akun</div>
+            <p class="text-xs text-slate-400 mt-2">Total ${m.totalBorrowers} peminjam & 3 pos simpanan</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-7">
+          <div class="glass-card rounded-3xl p-6 lg:col-span-7">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-white">Komposisi Aktiva Keuangan</h3>
+                <p class="text-xs text-slate-400">Perbandingan Tabunganku Cash, Rekening, Koperasi & Piutang</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-semibold">Bar Chart</span>
+            </div>
+            <div class="relative h-72 w-full"><canvas id="assetBarChart"></canvas></div>
+          </div>
+
+          <div class="glass-card rounded-3xl p-6 lg:col-span-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-white">Rasio Simpanan vs Piutang</h3>
+                <p class="text-xs text-slate-400">Distribusi likuiditas terhadap total aktiva</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 text-xs font-semibold">Donut Ratio</span>
+            </div>
+            <div class="relative h-72 w-full flex items-center justify-center"><canvas id="ratioDoughnutChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+            <div>
+              <h3 class="text-base font-bold text-white">Ringkasan Transaksi Terakhir Lintas Sumber</h3>
+              <p class="text-xs text-slate-400">Snapshot mutasi terbaru dari Mutasi Cash, Mutasi Rekening, dan Piutang Gabungan</p>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                  <th class="py-3 px-4">Sumber Sheet</th>
+                  <th class="py-3 px-4">Tanggal</th>
+                  <th class="py-3 px-4">Rincian / Keterangan</th>
+                  <th class="py-3 px-4 text-right">Nominal Transaksi</th>
+                  <th class="py-3 px-4 text-right">Posisi Saldo / Sisa</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-sm">
+                ${lastCash ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-xs font-semibold">Mutasi Cash (#${lastCash.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastCash.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastCash.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastCash.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastCash.masuk > 0 ? '+' + formatRupiah(lastCash.masuk) : '-' + formatRupiah(lastCash.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-cyan-300">${formatRupiah(lastCash.saldo)}</td></tr>` : ''}
+                ${lastRek ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-semibold">Mutasi Rekening (#${lastRek.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastRek.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastRek.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastRek.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastRek.masuk > 0 ? '+' + formatRupiah(lastRek.masuk) : '-' + formatRupiah(lastRek.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-indigo-300">${formatRupiah(lastRek.saldo)}</td></tr>` : ''}
+                ${lastPiutang ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold">Piutang (${escapeHtml(lastPiutang.nama)})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastPiutang.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastPiutang.keterangan)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastPiutang.pinjam > 0 ? 'text-amber-400' : 'text-emerald-400'}">${lastPiutang.pinjam > 0 ? 'Pinjam ' + formatRupiah(lastPiutang.pinjam) : 'Bayar ' + formatRupiah(lastPiutang.bayar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-amber-300">${formatRupiah(m.totalPiutang)}</td></tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      renderDashboardCharts(m);
+    }
+
+    function renderDashboardCharts(m) {
+      const barCanvas = document.getElementById('assetBarChart');
+      const doughnutCanvas = document.getElementById('ratioDoughnutChart');
+      if (!barCanvas || !doughnutCanvas) return;
+
+      if (barChartInstance) barChartInstance.destroy();
+      if (doughnutChartInstance) doughnutChartInstance.destroy();
+
+      barChartInstance = new Chart(barCanvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: ['Tabunganku Cash', 'Tabunganku Rekening', 'Tabungan Koperasi', 'Piutang Beredar'],
+          datasets: [{
+            label: 'Nominal (Rp)',
+            data: [m.saldoCash, m.saldoRekening, m.saldoKoperasi, m.totalPiutang],
+            backgroundColor: ['rgba(6, 182, 212, 0.78)', 'rgba(99, 102, 241, 0.78)', 'rgba(16, 185, 129, 0.78)', 'rgba(245, 158, 11, 0.78)'],
+            borderColor: ['#06b6d4', '#6366f1', '#10b981', '#f59e0b'],
+            borderWidth: 1.5,
+            borderRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#f8fafc',
+              bodyColor: '#38bdf8',
+              borderColor: 'rgba(255,255,255,0.12)',
+              borderWidth: 1,
+              callbacks: { label: ctx => ' ' + formatRupiah(ctx.parsed.y) }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 11 }, callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+          }
+        }
+      });
+
+      const total = m.totalSimpanan + m.totalPiutang || 1;
+      const pctSimpanan = ((m.totalSimpanan / total) * 100).toFixed(1);
+      const pctPiutang = ((m.totalPiutang / total) * 100).toFixed(1);
+
+      doughnutChartInstance = new Chart(doughnutCanvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: [`Total Simpanan (${pctSimpanan}%)`, `Piutang Beredar (${pctPiutang}%)`],
+          datasets: [{
+            data: [m.totalSimpanan, m.totalPiutang],
+            backgroundColor: ['rgba(16, 185, 129, 0.85)', 'rgba(99, 102, 241, 0.85)'],
+            borderColor: ['#10b981', '#6366f1'],
+            borderWidth: 2,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '66%',
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 16, font: { family: 'Plus Jakarta Sans', size: 12 } } },
+            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.95)', callbacks: { label: ctx => ` ${ctx.label}: ${formatRupiah(ctx.parsed)}` } }
+          }
+        }
+      });
+    }
+
+    // --- PAGE 2: SIMPANAN (CASH & REK) ---
+    function renderSimpanan(container, m) {
+      const pctCash = m.totalSimpanan ? ((m.saldoCash / m.totalSimpanan) * 100).toFixed(1) : '0.0';
+      const pctRek = m.totalSimpanan ? ((m.saldoRekening / m.totalSimpanan) * 100).toFixed(1) : '0.0';
+      const pctKop = m.totalSimpanan ? ((m.saldoKoperasi / m.totalSimpanan) * 100).toFixed(1) : '0.0';
+
+      container.innerHTML = `
+        <div class="hero-glass rounded-3xl p-6 sm:p-8 mb-7">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Total Keseluruhan Simpanan Likuid</span>
+              <div class="font-mono-num text-4xl sm:text-5xl font-extrabold text-white mt-1.5">${formatRupiah(m.totalSimpanan)}</div>
+              <p class="text-xs sm:text-sm text-slate-300 mt-2">Akumulasi saldo akhir dari Tabunganku Cash, Tabunganku Rekening, dan Simpanan Koperasi.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="navigateTo('mutasi_cash')" class="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/35 text-cyan-200 text-xs font-semibold transition">Lihat Buku Cash</button>
+              <button onclick="navigateTo('mutasi_rekening')" class="px-4 py-2.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/35 text-indigo-200 text-xs font-semibold transition">Lihat Buku Rekening</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6 mb-7">
+          <h3 class="text-lg font-bold text-white mb-1">Rincian Pos Dana Simpanan</h3>
+          <p class="text-xs text-slate-400 mb-5">Sinkron langsung dengan sheet Mutasi_Cash_Rekening dan Simpanan_Koperasi</p>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                  <th class="py-3.5 px-4">No</th>
+                  <th class="py-3.5 px-4">Pos Dana Simpanan</th>
+                  <th class="py-3.5 px-4">Sumber Database</th>
+                  <th class="py-3.5 px-4 text-right">Porsi (%)</th>
+                  <th class="py-3.5 px-4 text-right">Saldo Saat Ini</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-sm">
+                <tr class="hover:bg-white/[0.03]">
+                  <td class="py-4 px-4 font-mono-num text-slate-400">1</td>
+                  <td class="py-4 px-4 font-bold text-white flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-cyan-400"></span>Tabunganku Cash (Tunai)</td>
+                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Mutasi_Cash_Rekening (Cash)</code></td>
+                  <td class="py-4 px-4 text-right font-mono-num text-cyan-300">${pctCash}%</td>
+                  <td class="py-4 px-4 text-right font-mono-num font-bold text-cyan-400 text-base">${formatRupiah(m.saldoCash)}</td>
+                </tr>
+                <tr class="hover:bg-white/[0.03]">
+                  <td class="py-4 px-4 font-mono-num text-slate-400">2</td>
+                  <td class="py-4 px-4 font-bold text-white flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-indigo-400"></span>Tabunganku Rekening (Bank)</td>
+                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Mutasi_Cash_Rekening (Rekening)</code></td>
+                  <td class="py-4 px-4 text-right font-mono-num text-indigo-300">${pctRek}%</td>
+                  <td class="py-4 px-4 text-right font-mono-num font-bold text-indigo-400 text-base">${formatRupiah(m.saldoRekening)}</td>
+                </tr>
+                <tr class="hover:bg-white/[0.03]">
+                  <td class="py-4 px-4 font-mono-num text-slate-400">3</td>
+                  <td class="py-4 px-4 font-bold text-white flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span>Tabungan Koperasi</td>
+                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Simpanan_Koperasi</code></td>
+                  <td class="py-4 px-4 text-right font-mono-num text-emerald-300">${pctKop}%</td>
+                  <td class="py-4 px-4 text-right font-mono-num font-bold text-emerald-400 text-base">${formatRupiah(m.saldoKoperasi)}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="bg-emerald-500/10 border-t-2 border-emerald-400/40">
+                  <td colspan="3" class="py-4 px-4 font-extrabold text-white text-sm uppercase tracking-wider">Total Keseluruhan Simpanan</td>
+                  <td class="py-4 px-4 text-right font-mono-num font-bold text-emerald-300">100.0%</td>
+                  <td class="py-4 px-4 text-right font-mono-num font-extrabold text-emerald-400 text-lg">${formatRupiah(m.totalSimpanan)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- PAGE 3: MUTASI CASH GLOBAL ---
+    function renderMutasiCash(container, m) {
+      const totalMasuk = dbState.cash.reduce((s, r) => s + r.masuk, 0);
+      const totalKeluar = dbState.cash.reduce((s, r) => s + r.keluar, 0);
+      const q = filterState.cashSearch.toLowerCase();
+      const filtered = dbState.cash.filter(r => r.rincian.toLowerCase().includes(q) || r.tgl.toLowerCase().includes(q) || String(r.no).includes(q));
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Total Cash Masuk</div>
+            <div class="font-mono-num text-xl font-bold text-emerald-400 mt-1">${formatRupiah(totalMasuk)}</div>
+          </div>
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Total Cash Keluar</div>
+            <div class="font-mono-num text-xl font-bold text-rose-400 mt-1">${formatRupiah(totalKeluar)}</div>
+          </div>
+          <div class="glass-card rounded-2xl p-4 border border-cyan-400/30">
+            <div class="text-xs text-cyan-300">Sisa Saldo Cash Berjalan</div>
+            <div class="font-mono-num text-xl font-extrabold text-cyan-400 mt-1">${formatRupiah(m.saldoCash)}</div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+            <div>
+              <h3 class="text-base font-bold text-white">Buku Mutasi Cash Tunai (${filtered.length} baris)</h3>
+              <p class="text-xs text-slate-400">Kronologis transaksi kas tunai fisik lengkap dengan sisa saldo berjalan</p>
+            </div>
+            <input type="text" value="${escapeHtml(filterState.cashSearch)}" oninput="filterState.cashSearch = this.value; renderCurrentPage();" placeholder="Cari tanggal atau rincian cash..." class="glass-input w-full sm:w-72 px-4 py-2 rounded-xl text-sm" />
+          </div>
+
+          <div class="overflow-x-auto max-h-[580px]">
+            <table class="w-full text-left border-collapse">
+              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
+                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                  <th class="py-3.5 px-3">No</th>
+                  <th class="py-3.5 px-3">Tanggal</th>
+                  <th class="py-3.5 px-3">Rincian Transaksi</th>
+                  <th class="py-3.5 px-3 text-right">Masuk (Simpan)</th>
+                  <th class="py-3.5 px-3 text-right">Keluar (Pakai)</th>
+                  <th class="py-3.5 px-3 text-right">Sisa Saldo Berjalan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-sm">
+                ${filtered.map(r => `
+                  <tr class="hover:bg-white/[0.03] transition">
+                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
+                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
+                    <td class="py-3 px-3 text-white">${escapeHtml(r.rincian)}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.masuk > 0 ? formatRupiah(r.masuk) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-rose-400 whitespace-nowrap">${r.keluar > 0 ? formatRupiah(r.keluar) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num font-bold text-cyan-300 whitespace-nowrap">${formatRupiah(r.saldo)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- PAGE 4: MUTASI REKENING GLOBAL ---
+    function renderMutasiRekening(container, m) {
+      const totalMasuk = dbState.rekening.reduce((s, r) => s + r.masuk, 0);
+      const totalKeluar = dbState.rekening.reduce((s, r) => s + r.keluar, 0);
+      const q = filterState.rekSearch.toLowerCase();
+      const filtered = dbState.rekening.filter(r => r.rincian.toLowerCase().includes(q) || r.tgl.toLowerCase().includes(q) || String(r.no).includes(q));
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Total Rekening Masuk</div>
+            <div class="font-mono-num text-xl font-bold text-emerald-400 mt-1">${formatRupiah(totalMasuk)}</div>
+          </div>
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Total Rekening Keluar</div>
+            <div class="font-mono-num text-xl font-bold text-rose-400 mt-1">${formatRupiah(totalKeluar)}</div>
+          </div>
+          <div class="glass-card rounded-2xl p-4 border border-indigo-400/30">
+            <div class="text-xs text-indigo-300">Sisa Saldo Rekening Berjalan</div>
+            <div class="font-mono-num text-xl font-extrabold text-indigo-400 mt-1">${formatRupiah(m.saldoRekening)}</div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+            <div>
+              <h3 class="text-base font-bold text-white">Buku Mutasi Rekening Bank (${filtered.length} baris)</h3>
+              <p class="text-xs text-slate-400">Kronologis transaksi rekening digital lengkap dengan sisa saldo berjalan</p>
+            </div>
+            <input type="text" value="${escapeHtml(filterState.rekSearch)}" oninput="filterState.rekSearch = this.value; renderCurrentPage();" placeholder="Cari tanggal atau rincian rekening..." class="glass-input w-full sm:w-72 px-4 py-2 rounded-xl text-sm" />
+          </div>
+
+          <div class="overflow-x-auto max-h-[580px]">
+            <table class="w-full text-left border-collapse">
+              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
+                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                  <th class="py-3.5 px-3">No</th>
+                  <th class="py-3.5 px-3">Tanggal</th>
+                  <th class="py-3.5 px-3">Rincian Transaksi</th>
+                  <th class="py-3.5 px-3 text-right">Masuk</th>
+                  <th class="py-3.5 px-3 text-right">Keluar</th>
+                  <th class="py-3.5 px-3 text-right">Sisa Saldo Berjalan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-sm">
+                ${filtered.map(r => `
+                  <tr class="hover:bg-white/[0.03] transition">
+                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
+                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
+                    <td class="py-3 px-3 text-white">${escapeHtml(r.rincian)}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.masuk > 0 ? formatRupiah(r.masuk) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-rose-400 whitespace-nowrap">${r.keluar > 0 ? formatRupiah(r.keluar) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num font-bold text-indigo-300 whitespace-nowrap">${formatRupiah(r.saldo)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- PAGE 5: REKAP PIUTANG ---
+    function renderRekapPiutang(container, m) {
+      const totalPinjamAll = m.borrowerSummary.reduce((s, b) => s + b.totalPinjam, 0);
+      const totalBayarAll = m.borrowerSummary.reduce((s, b) => s + b.totalBayar, 0);
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Total Akumulasi Pinjaman</div>
+            <div class="font-mono-num text-xl font-bold text-white mt-1">${formatRupiah(totalPinjamAll)}</div>
+          </div>
+          <div class="glass-card rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Total Angsuran Diterima</div>
+            <div class="font-mono-num text-xl font-bold text-emerald-400 mt-1">${formatRupiah(totalBayarAll)}</div>
+          </div>
+          <div class="glass-card rounded-2xl p-4 border border-amber-400/30">
+            <div class="text-xs text-amber-300">Total Sisa Piutang Beredar</div>
+            <div class="font-mono-num text-xl font-extrabold text-amber-400 mt-1">${formatRupiah(m.totalPiutang)}</div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+            <div>
+              <h3 class="text-base font-bold text-white">Daftar Ringkas Posisi Piutang Peminjam</h3>
+              <p class="text-xs text-slate-400">Otomatis dikalkulasi dari seluruh riwayat sheet Piutang_Gabungan</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                  <th class="py-3.5 px-4">No</th>
+                  <th class="py-3.5 px-4">Nama Peminjam</th>
+                  <th class="py-3.5 px-4 text-right">Total Pinjaman</th>
+                  <th class="py-3.5 px-4 text-right">Total Dibayar</th>
+                  <th class="py-3.5 px-4 text-right">Sisa Piutang</th>
+                  <th class="py-3.5 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-sm">
+                ${m.borrowerSummary.map((b, idx) => {
+                  const isLunas = b.sisa <= 0;
+                  return `
+                    <tr class="hover:bg-white/[0.03] transition">
+                      <td class="py-4 px-4 font-mono-num text-slate-400">${idx + 1}</td>
+                      <td class="py-4 px-4">
+                        <div class="font-bold text-white">${escapeHtml(b.nama)}</div>
+                        <div class="text-xs text-slate-400">${b.count} catatan mutasi</div>
+                      </td>
+                      <td class="py-4 px-4 text-right font-mono-num text-slate-200">${formatRupiah(b.totalPinjam)}</td>
+                      <td class="py-4 px-4 text-right font-mono-num text-emerald-400">${formatRupiah(b.totalBayar)}</td>
+                      <td class="py-4 px-4 text-right font-mono-num font-extrabold ${isLunas ? 'text-emerald-400' : 'text-amber-400'}">${formatRupiah(Math.max(0, b.sisa))}</td>
+                      <td class="py-4 px-4 text-center">
+                        ${isLunas ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">LUNAS</span>` : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">AKTIF BEREDAR</span>`}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+              <tfoot>
+                <tr class="bg-white/[0.04] border-t-2 border-white/15 font-bold">
+                  <td colspan="2" class="py-4 px-4 text-white uppercase text-xs tracking-wider">Total Keseluruhan</td>
+                  <td class="py-4 px-4 text-right font-mono-num text-white">${formatRupiah(totalPinjamAll)}</td>
+                  <td class="py-4 px-4 text-right font-mono-num text-emerald-400">${formatRupiah(totalBayarAll)}</td>
+                  <td class="py-4 px-4 text-right font-mono-num text-amber-400 text-base">${formatRupiah(m.totalPiutang)}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- PAGE 6: RINCI PIUTANG GABUNGAN ---
+    function renderRinciPiutang(container, m) {
+      const q = filterState.piutangSearch.toLowerCase();
+      const selectedBorrower = filterState.piutangBorrower;
+
+      const filtered = m.detailedPiutang.filter(row => {
+        const matchBorrower = selectedBorrower === 'ALL' || row.nama === selectedBorrower;
+        const matchQuery = row.nama.toLowerCase().includes(q) || row.keterangan.toLowerCase().includes(q) || row.tgl.toLowerCase().includes(q);
+        return matchBorrower && matchQuery;
+      });
+
+      container.innerHTML = `
+        <div class="glass-card rounded-3xl p-5 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <div class="md:col-span-7">
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Pencarian Cepat (Nama / Keterangan / Tanggal)</label>
+              <input type="text" value="${escapeHtml(filterState.piutangSearch)}" oninput="filterState.piutangSearch = this.value; renderCurrentPage();" placeholder="Ketik kata kunci pencarian instan..." class="glass-input w-full px-4 py-2.5 rounded-xl text-sm" />
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Filter Nama Peminjam</label>
+              <select onchange="filterState.piutangBorrower = this.value; renderCurrentPage();" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+                <option value="ALL" ${selectedBorrower === 'ALL' ? 'selected' : ''}>Semua Peminjam (${m.borrowerSummary.length})</option>
+                ${m.borrowerSummary.map(b => `<option value="${escapeHtml(b.nama)}" ${selectedBorrower === b.nama ? 'selected' : ''}>${escapeHtml(b.nama)} (${formatRupiah(Math.max(0, b.sisa))})</option>`).join('')}
+              </select>
+            </div>
+            <div class="md:col-span-2 flex items-end">
+              <button onclick="filterState.piutangSearch=''; filterState.piutangBorrower='ALL'; renderCurrentPage();" class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 mt-5 md:mt-6">
+                Reset Filter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-base font-bold text-white">Tabel Terpadu Riwayat Piutang Gabungan (${filtered.length} transaksi)</h3>
+              <p class="text-xs text-slate-400">Kolom Sisa Akhir dihitung secara kumulatif berjalan per masing-masing peminjam</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto max-h-[580px]">
+            <table class="w-full text-left border-collapse">
+              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
+                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                  <th class="py-3.5 px-3">No</th>
+                  <th class="py-3.5 px-3">Nama Peminjam</th>
+                  <th class="py-3.5 px-3">Tanggal</th>
+                  <th class="py-3.5 px-3">Keterangan / Rincian</th>
+                  <th class="py-3.5 px-3 text-right">Pinjaman</th>
+                  <th class="py-3.5 px-3 text-right">Bayar / Angsuran</th>
+                  <th class="py-3.5 px-3 text-right">Sisa Akhir</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-sm">
+                ${filtered.map(r => `
+                  <tr class="hover:bg-white/[0.03] transition">
+                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
+                    <td class="py-3 px-3 font-semibold text-indigo-300 whitespace-nowrap">${escapeHtml(r.nama)}</td>
+                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
+                    <td class="py-3 px-3 text-white">${escapeHtml(r.keterangan)}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-amber-400 whitespace-nowrap">${r.pinjam > 0 ? formatRupiah(r.pinjam) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.bayar > 0 ? formatRupiah(r.bayar) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num font-bold ${r.sisaAkhir <= 0 ? 'text-emerald-400' : 'text-white'} whitespace-nowrap">${formatRupiah(Math.max(0, r.sisaAkhir))}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- PAGE 7: LAPORAN REKAPAN ---
+    function renderLaporan(container, m) {
+      const todayStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      container.innerHTML = `
+        <div class="no-print glass-card rounded-3xl p-5 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 class="text-base font-bold text-white">Ekspor & Cetak Neraca Eksekutif</h3>
+            <p class="text-xs text-slate-400">Unduh seluruh database terbaru ke file Excel multi-sheet atau cetak laporan resmi.</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-500/25 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+              <span>Cetak Laporan</span>
+            </button>
+            <button onclick="downloadMasterExcel()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <span>Download Master Excel</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6 sm:p-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-5 mb-6 border-b border-white/10">
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest text-cyan-400">Laporan Neraca Keuangan Eksekutif</div>
+              <h2 class="text-2xl font-extrabold text-white mt-1">Sistem Keuangan Terpadu (Adi Muhtar)</h2>
+            </div>
+            <div class="text-xs text-slate-400 mt-2 sm:mt-0 sm:text-right">
+              <div>Tanggal Cetak: <span class="text-slate-200 font-medium">${todayStr}</span></div>
+              <div>Total Transaksi Tercatat: <span class="font-mono-num text-cyan-300 font-semibold">${m.totalTransaksi} entri</span></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-7">
+            <div class="rounded-2xl bg-slate-950/50 border border-white/10 p-5">
+              <h4 class="text-sm font-bold uppercase tracking-wider text-emerald-400 mb-4">I. Aktiva Likuid & Simpanan</h4>
+              <div class="space-y-3 text-sm">
+                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabunganku Cash (Tunai)</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoCash)}</span></div>
+                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabunganku Rekening (Bank)</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoRekening)}</span></div>
+                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabungan Koperasi</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoKoperasi)}</span></div>
+                <div class="flex justify-between pt-2 text-base font-extrabold text-emerald-400"><span>Subtotal Simpanan</span><span class="font-mono-num">${formatRupiah(m.totalSimpanan)}</span></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl bg-slate-950/50 border border-white/10 p-5">
+              <h4 class="text-sm font-bold uppercase tracking-wider text-indigo-400 mb-4">II. Aktiva Piutang Beredar</h4>
+              <div class="space-y-3 text-sm">
+                ${m.borrowerSummary.map(b => `<div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">${escapeHtml(b.nama)}</span><span class="font-mono-num font-semibold ${b.sisa > 0 ? 'text-amber-300' : 'text-emerald-400'}">${formatRupiah(Math.max(0, b.sisa))}</span></div>`).join('')}
+                <div class="flex justify-between pt-2 text-base font-extrabold text-indigo-400"><span>Subtotal Piutang</span><span class="font-mono-num">${formatRupiah(m.totalPiutang)}</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-emerald-500/20 border border-cyan-400/35 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-cyan-300 font-bold">Total Keseluruhan Aktiva / Kekayaan Bersih</div>
+              <div class="text-xs text-slate-300 mt-0.5">Gabungan seluruh saldo kas tunai, rekening bank, simpanan koperasi, dan piutang beredar</div>
+            </div>
+            <div class="font-mono-num text-2xl sm:text-3xl font-extrabold text-white">${formatRupiah(m.totalAktiva)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 6. REALTIME EXCEL SYNC ENGINE & MULTI-SHEET PARSER
+    // =========================================================================
+    function normalizeExcelDate(val) {
+      if (val === null || val === undefined || val === '') return new Date().toISOString().slice(0, 10);
+      if (val instanceof Date && !isNaN(val)) {
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, '0');
+        const d = String(val.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      if (typeof val === 'number') {
+        const parsed = XLSX.SSF.parse_date_code(val);
+        if (parsed) {
+          const y = parsed.y;
+          const m = String(parsed.m).padStart(2, '0');
+          const d = String(parsed.d).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+      }
+      const str = String(val).trim();
+      const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+      return str;
+    }
+
+    function parseNumericCell(val) {
+      if (typeof val === 'number') return isNaN(val) ? 0 : val;
+      if (!val) return 0;
+      const cleaned = String(val).replace(/[^0-9.-]/g, '');
+      const num = Number(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+
+    function parseWorkbook(workbook) {
+      let parsedCash = [];
+      let parsedRek = [];
+      let parsedPiutang = [];
+      let parsedKoperasi = null;
+
+      const mutasiName = workbook.SheetNames.find(n => n.toLowerCase().includes('mutasi'));
+      if (mutasiName) {
+        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[mutasiName], { header: 1, defval: '' });
+        let usedDualLayout = false;
+
+        for (let r = 4; r < matrix.length; r++) {
+          const row = matrix[r] || [];
+          const cTgl = row[1];
+          const cRincian = String(row[2] || '').trim();
+          const cMasuk = parseNumericCell(row[3]);
+          const cKeluar = parseNumericCell(row[4]);
+
+          if (cRincian && cRincian.toLowerCase() !== 'rincian' && cRincian.toLowerCase() !== 'total' && (cTgl !== '' || cMasuk > 0 || cKeluar > 0)) {
+            usedDualLayout = true;
+            parsedCash.push({ no: parsedCash.length + 1, tgl: normalizeExcelDate(cTgl), rincian: cRincian, masuk: cMasuk, keluar: cKeluar, saldo: 0 });
+          }
+
+          if (row.length >= 11) {
+            const col7 = row[7];
+            const col8 = row[8];
+            const col9 = row[9];
+            const col10 = row[10];
+            const col11 = row[11];
+            const isCol7Index = typeof col7 === 'number' && col7 < 10000 && col8 !== '';
+            const rTgl = isCol7Index ? col8 : col7;
+            const rRincian = String(isCol7Index ? col9 : col8 || '').trim();
+            const rMasuk = parseNumericCell(isCol7Index ? col10 : col9);
+            const rKeluar = parseNumericCell(isCol7Index ? col11 : col10);
+
+            if (rRincian && rRincian.toLowerCase() !== 'rincian' && rRincian.toLowerCase() !== 'total' && (rTgl !== '' || rMasuk > 0 || rKeluar > 0)) {
+              usedDualLayout = true;
+              parsedRek.push({ no: parsedRek.length + 1, tgl: normalizeExcelDate(rTgl), rincian: rRincian, masuk: rMasuk, keluar: rKeluar, saldo: 0 });
+            }
+          }
+        }
+      }
+
+      const piutangName = workbook.SheetNames.find(n => n.toLowerCase().includes('piutang'));
+      if (piutangName) {
+        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[piutangName], { header: 1, defval: '' });
+        for (let r = 4; r < matrix.length; r++) {
+          const row = matrix[r] || [];
+          const isCol0No = typeof row[0] === 'number' && typeof row[1] === 'string' && row[1].trim() !== '';
+          const nama = String(isCol0No ? row[1] : row[0] || '').trim();
+          const tgl = isCol0No ? row[2] : row[1];
+          const ket = String(isCol0No ? row[3] : row[2] || '').trim();
+          const pinjam = parseNumericCell(isCol0No ? row[4] : row[3]);
+          const bayar = parseNumericCell(isCol0No ? row[5] : row[4]);
+
+          if (nama && !['nama', 'nama peminjam', 'no', 'total'].includes(nama.toLowerCase()) && (pinjam > 0 || bayar > 0)) {
+            parsedPiutang.push({ nama, tgl: normalizeExcelDate(tgl), keterangan: ket || '-', pinjam, bayar });
+          }
+        }
+      }
+
+      const kopName = workbook.SheetNames.find(n => n.toLowerCase().includes('koperasi') || n.toLowerCase().includes('simpanan'));
+      if (kopName) {
+        const sheet = workbook.Sheets[kopName];
+        if (sheet['B1'] && sheet['B1'].v !== undefined && !isNaN(parseNumericCell(sheet['B1'].v))) {
+          parsedKoperasi = parseNumericCell(sheet['B1'].v);
+        }
+      }
+
+      return { cash: parsedCash, rekening: parsedRek, piutang: parsedPiutang, koperasi: parsedKoperasi };
+    }
+
+    function applyParsedWorkbook(workbook, sourceName, modeLabel, silent = false) {
+      const parsed = parseWorkbook(workbook);
+      let applied = false;
+
+      if (parsed.cash.length > 0) { dbState.cash = parsed.cash; applied = true; }
+      if (parsed.rekening.length > 0) { dbState.rekening = parsed.rekening; applied = true; }
+      if (parsed.piutang.length > 0) { dbState.piutang = parsed.piutang; applied = true; }
+      if (parsed.koperasi !== null && !isNaN(parsed.koperasi)) { dbState.koperasi = parsed.koperasi; applied = true; }
+
+      if (applied) {
+        recalculateRunningBalances();
+        document.getElementById('dbSourceLabel').textContent = sourceName;
+        updateSyncIndicatorUI(modeLabel);
+        renderCurrentPage();
+        if (!silent) showToast(`Data realtime tersinkron dari ${sourceName}!`);
+      }
+      return applied;
+    }
+
+    function updateSyncIndicatorUI(modeText) {
+      const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const modeEl = document.getElementById('liveSyncModeText');
+      const clockEl = document.getElementById('liveSyncClock');
+      const sideLabel = document.getElementById('lastSyncTimeLabel');
+      const sideBadge = document.getElementById('sidebarSyncBadge');
+
+      if (modeEl) modeEl.textContent = modeText;
+      if (clockEl) clockEl.textContent = nowStr;
+      if (sideLabel) sideLabel.textContent = `Update: ${nowStr}`;
+      if (sideBadge) sideBadge.textContent = liveSyncState.mode === 'handle' ? 'LIVE FILE' : 'LIVE';
+    }
+
+    async function connectLiveExcelHandle() {
+      if (!('showOpenFilePicker' in window)) {
+        showToast('File System Access API belum didukung browser ini.', 'error');
+        return;
+      }
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{ description: 'Excel Database File', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }],
+          multiple: false
+        });
+        liveSyncState.fileHandle = handle;
+        liveSyncState.mode = 'handle';
+        liveSyncState.lastModified = null;
+
+        const btn = document.getElementById('btnConnectLiveFile');
+        if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Live: ${escapeHtml(handle.name)}</span>`;
+        await checkFileHandleUpdate(false);
+      } catch (err) {
+        if (err.name !== 'AbortError') showToast('Gagal menghubungkan file: ' + err.message, 'error');
+      }
+    }
+
+    async function checkFileHandleUpdate(silent = true) {
+      if (!liveSyncState.fileHandle) return;
+      try {
+        const file = await liveSyncState.fileHandle.getFile();
+        if (liveSyncState.lastModified !== file.lastModified) {
+          const isFirst = liveSyncState.lastModified === null;
+          liveSyncState.lastModified = file.lastModified;
+          const buffer = await file.arrayBuffer();
+          const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+          applyParsedWorkbook(workbook, file.name, 'Live File Watcher', silent && !isFirst);
+        }
+      } catch (err) { console.warn(err); }
+    }
+
+    async function checkHttpExcelUpdate(manual = false) {
+      if (liveSyncState.mode === 'handle') return;
+      if (window.location.protocol === 'file:') {
+        if (manual) showToast('Anda membuka via file://. Klik Hubungkan File Excel Live untuk memilih database_keuangan_sync.xlsx.', 'info');
+        return;
+      }
+      try {
+        const res = await fetch('./database_keuangan_sync.xlsx?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const buffer = await res.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let checksum = bytes.length;
+        for (let i = 0; i < bytes.length; i += 37) checksum = (checksum * 31 + bytes[i]) >>> 0;
+        const signature = `${bytes.length}|${checksum}`;
+
+        if (liveSyncState.lastSignature !== signature) {
+          const isFirst = liveSyncState.lastSignature === null;
+          liveSyncState.lastSignature = signature;
+          const workbook = XLSX.read(bytes, { type: 'array' });
+          applyParsedWorkbook(workbook, 'database_keuangan_sync.xlsx', 'Auto-Fetch HTTP', isFirst && !manual);
+        } else if (manual) {
+          showToast('Data sudah paling mutakhir.', 'info');
+        }
+      } catch (err) { console.warn(err); }
+    }
+
+    function forceCheckLiveSync(manual = false) {
+      if (liveSyncState.mode === 'handle') checkFileHandleUpdate(false);
+      else checkHttpExcelUpdate(manual);
+    }
+
+    function downloadMasterExcel() {
+      try {
+        const m = getMetrics();
+        const wb = XLSX.utils.book_new();
+        const mutasiRows = [
+          ...dbState.cash.map(r => ({ No: r.no, Jenis_Akun: 'Cash', Tanggal: r.tgl, Rincian: r.rincian, Masuk: r.masuk, Keluar: r.keluar, Saldo: r.saldo })),
+          ...dbState.rekening.map(r => ({ No: r.no, Jenis_Akun: 'Rekening', Tanggal: r.tgl, Rincian: r.rincian, Masuk: r.masuk, Keluar: r.keluar, Saldo: r.saldo }))
+        ];
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mutasiRows), 'Mutasi_Cash_Rekening');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(m.detailedPiutang), 'Piutang_Gabungan');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{ Pos_Simpanan: 'Tabungan Koperasi', Saldo: m.saldoKoperasi }]), 'Simpanan_Koperasi');
+        XLSX.writeFile(wb, 'database_keuangan_terpadu.xlsx');
+        showToast('Master Excel berhasil diunduh!');
+      } catch (err) { showToast('Gagal mendownload Excel.', 'error'); }
+    }
+
+    function startRealtimeSyncLoop() {
+      checkHttpExcelUpdate(false);
+      setInterval(() => {
+        if (liveSyncState.mode === 'handle') checkFileHandleUpdate(false);
+        else checkHttpExcelUpdate(false);
+      }, 1800);
+    }
+  </script>
+</body>
+</html>
