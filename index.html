@@ -180,9 +180,9 @@
 
     .sidebar-glass {
       width: 280px;
-      background: linear-gradient(180deg, rgba(10, 15, 30, 0.92) 0%, rgba(7, 10, 22, 0.95) 100%);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      background: linear-gradient(180deg, rgba(10, 15, 30, 0.96) 0%, rgba(7, 10, 22, 0.98) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border-right: 1px solid var(--border-glass);
       box-shadow: 16px 0 45px rgba(0, 0, 0, 0.65);
     }
@@ -267,7 +267,7 @@
         </button>
       </form>
       <div class="mt-6 text-[11px] text-slate-400 font-mono-num">
-        Mode Eksternal Murni • Satu Folder Bersama index.html
+        Mode Sesi Aktif • Satu Folder Bersama index.html
       </div>
     </div>
   </div>
@@ -290,8 +290,8 @@
       </button>
     </header>
 
-    <!-- Mobile Overlay -->
-    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden lg:hidden"></div>
+    <!-- Mobile Overlay (Solid Clean Background Tanpa Efek Blur Berlebih) -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/80 z-30 hidden lg:hidden transition-opacity"></div>
 
     <div class="relative z-10 flex min-h-screen">
       <!-- Left Sidebar -->
@@ -499,7 +499,7 @@
     let doughnutChartInstance = null;
 
     let liveSyncState = {
-      mode: 'pending', // 'http' | 'handle' | 'manual' | 'pending'
+      mode: 'pending',
       fileHandle: null,
       lastModified: null,
       lastSignature: null,
@@ -514,14 +514,27 @@
     };
 
     // =========================================================================
-    // 2. AUTHENTICATION (Password: adim)
+    // 2. SESSION AUTHENTICATION (Persistent across page refreshes)
     // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      const isLogged = sessionStorage.getItem('finflow_logged_in');
+      if (isLogged === 'true') {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainAppContainer').classList.remove('hidden');
+        recalculateRunningBalances();
+        renderCurrentPage();
+        startRealtimeSyncLoop();
+      }
+    });
+
     function handleLogin(e) {
       e.preventDefault();
       const pwd = document.getElementById('loginPasswordInput').value;
       if (pwd === 'adim') {
+        sessionStorage.setItem('finflow_logged_in', 'true');
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainAppContainer').classList.remove('hidden');
+        showToast('Selamat datang, Bang Adi!');
         recalculateRunningBalances();
         renderCurrentPage();
         startRealtimeSyncLoop();
@@ -532,6 +545,7 @@
     }
 
     function handleLogout() {
+      sessionStorage.removeItem('finflow_logged_in');
       document.getElementById('mainAppContainer').classList.add('hidden');
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('loginPasswordInput').value = '';
@@ -1431,7 +1445,6 @@
       let parsedPiutang = [];
       let parsedKoperasi = null;
 
-      // 1. Parse Sheet Mutasi (Mutasi_Cash_Rekening)
       const mutasiName = workbook.SheetNames.find(n => n.toLowerCase().includes('mutasi'));
       if (mutasiName) {
         const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[mutasiName], { header: 1, defval: '' });
@@ -1439,7 +1452,6 @@
         for (let r = 4; r < matrix.length; r++) {
           const row = matrix[r] || [];
 
-          // Kolom Kiri: Cash (B=Tgl, C=Rincian, D=Masuk, E=Keluar)
           const cTgl = row[1];
           const cRincian = String(row[2] || '').trim();
           const cMasuk = parseNumericCell(row[3]);
@@ -1456,7 +1468,6 @@
             });
           }
 
-          // Kolom Kanan: Rekening (H=No/Tgl, I=Tgl/Rincian, J=Rincian/Masuk, K=Masuk/Keluar, L=Keluar)
           if (row.length >= 11) {
             const col7 = row[7];
             const col8 = row[8];
@@ -1483,7 +1494,6 @@
         }
       }
 
-      // 2. Parse Sheet Piutang (Piutang_Gabungan)
       const piutangName = workbook.SheetNames.find(n => n.toLowerCase().includes('piutang'));
       if (piutangName) {
         const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[piutangName], { header: 1, defval: '' });
@@ -1508,7 +1518,6 @@
         }
       }
 
-      // 3. Parse Sheet Simpanan Koperasi
       const kopName = workbook.SheetNames.find(n => n.toLowerCase().includes('koperasi') || n.toLowerCase().includes('simpanan'));
       if (kopName) {
         const sheet = workbook.Sheets[kopName];
@@ -1569,7 +1578,6 @@
       }
     }
 
-    // Metode Universal: Mendukung PC (File System Access API) dan HP (Input File Standar)
     async function triggerUniversalExcelSync() {
       if ('showOpenFilePicker' in window) {
         try {
@@ -1592,7 +1600,6 @@
           if (err.name === 'AbortError') return;
         }
       }
-      // Fallback untuk Browser HP (Android/iOS Safari/Chrome)
       const fileInput = document.getElementById('universalExcelInput');
       if (fileInput) {
         fileInput.value = '';
@@ -1633,7 +1640,6 @@
       } catch (err) { console.warn(err); }
     }
 
-    // Membaca ./database_keuangan_sync.xlsx dari folder yang sama (Fetch + XHR Fallback untuk Browser HP)
     function fetchSameFolderArrayBuffer(url) {
       return new Promise((resolve, reject) => {
         fetch(url, { cache: 'no-store' })
@@ -1643,7 +1649,6 @@
           })
           .then(resolve)
           .catch(() => {
-            // Fallback XMLHttpRequest untuk sebagian browser HP lokal
             try {
               const xhr = new XMLHttpRequest();
               xhr.open('GET', url, true);
