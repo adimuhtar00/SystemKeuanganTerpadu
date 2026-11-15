@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sistem Keuangan Terpadu 3D — Bang Adi Muhtar</title>
-  <!-- SheetJS untuk membaca database.xlsx secara real-time -->
+  <!-- SheetJS Library -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --bg-deep: #030712;
-      --bg-card: rgba(15, 23, 42, 0.78);
+      --bg-card: rgba(15, 23, 42, 0.82);
       --gold-primary: #f59e0b;
       --gold-light: #fde047;
       --gold-glow: rgba(245, 158, 11, 0.4);
@@ -20,12 +20,7 @@
       --text-muted: #94a3b8;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
 
     html, body {
       width: 100%;
@@ -36,7 +31,6 @@
       perspective: 1500px;
     }
 
-    /* Latar Belakang Bola Cahaya 3D */
     .bg-light-orb {
       position: fixed;
       border-radius: 50%;
@@ -54,7 +48,6 @@
       100% { transform: translate3d(50px, 40px, 60px) scale(1.12); }
     }
 
-    /* Layar Loading 3D */
     #loading-screen {
       position: fixed;
       inset: 0;
@@ -82,7 +75,6 @@
       100% { transform: perspective(200px) rotateX(180deg) rotateY(180deg); }
     }
 
-    /* Container Utama */
     .wrapper {
       position: relative;
       z-index: 2;
@@ -91,7 +83,6 @@
       padding: 18px 22px;
     }
 
-    /* Header 3D Mewah */
     .header-3d {
       display: flex;
       flex-wrap: wrap;
@@ -159,7 +150,6 @@
       box-shadow: 0 5px 0 #78350f, 0 8px 20px rgba(245, 158, 11, 0.4);
     }
 
-    /* Navigasi 5 Halaman */
     .nav-tabs-3d {
       display: flex;
       flex-wrap: wrap;
@@ -170,12 +160,11 @@
       backdrop-filter: blur(12px);
       border-radius: 14px;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
     .tab-btn {
       flex: 1;
-      min-width: 140px;
+      min-width: 130px;
       padding: 10px 14px;
       border-radius: 10px;
       border: 1px solid transparent;
@@ -188,20 +177,15 @@
       text-align: center;
     }
 
-    .tab-btn:hover {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
+    .tab-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
 
     .tab-btn.active {
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(217, 119, 6, 0.14));
       color: var(--gold-light);
       border: 1px solid rgba(245, 158, 11, 0.6);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25);
     }
 
-    /* Status Bar Real-Time */
     .sync-bar {
       display: flex;
       flex-wrap: wrap;
@@ -216,22 +200,8 @@
       font-size: 0.83rem;
     }
 
-    .live-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--emerald-neon);
-      font-weight: 700;
-    }
-
-    .pulse-dot {
-      width: 9px;
-      height: 9px;
-      background: var(--emerald-neon);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--emerald-neon);
-      animation: pulseRing 1.5s infinite;
-    }
+    .live-indicator { display: flex; align-items: center; gap: 8px; color: var(--emerald-neon); font-weight: 700; }
+    .pulse-dot { width: 9px; height: 9px; background: var(--emerald-neon); border-radius: 50%; box-shadow: 0 0 10px var(--emerald-neon); animation: pulseRing 1.5s infinite; }
 
     @keyframes pulseRing {
       0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
@@ -239,21 +209,14 @@
       100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
     }
 
-    /* Halaman Sections */
-    .page-section {
-      display: none;
-      animation: pageEnter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .page-section.active {
-      display: block;
-    }
+    .page-section { display: none; animation: pageEnter 0.3s ease; }
+    .page-section.active { display: block; }
 
     @keyframes pageEnter {
-      from { opacity: 0; transform: perspective(1000px) translateY(10px); }
-      to { opacity: 1; transform: perspective(1000px) translateY(0); }
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Kartu KPI 3D */
     .kpi-grid-3d {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -269,35 +232,16 @@
       border-radius: 14px;
       padding: 18px 20px;
       box-shadow: 0 16px 35px rgba(0, 0, 0, 0.55);
-      transition: transform 0.2s ease, border-color 0.2s ease;
     }
 
-    .card-3d:hover {
-      border-color: var(--gold-primary);
-      transform: translateY(-3px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.2);
-    }
-
-    .kpi-title {
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-muted);
-      font-weight: 700;
-    }
-
-    .kpi-num {
-      font-size: 1.45rem;
-      font-weight: 800;
-      margin-top: 6px;
-    }
+    .kpi-title { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); font-weight: 700; }
+    .kpi-num { font-size: 1.45rem; font-weight: 800; margin-top: 6px; }
 
     .c-gold { color: var(--gold-light); }
     .c-green { color: var(--emerald-neon); }
     .c-red { color: var(--rose-neon); }
     .c-cyan { color: var(--cyan-neon); }
 
-    /* Panel Tabel & Rapat Presisi */
     .panel-3d {
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(14px);
@@ -319,11 +263,7 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .panel-header h3 {
-      font-size: 1.05rem;
-      color: var(--gold-light);
-      letter-spacing: 0.4px;
-    }
+    .panel-header h3 { font-size: 1.05rem; color: var(--gold-light); }
 
     input[type="text"], select {
       background: #030712;
@@ -335,168 +275,36 @@
       outline: none;
     }
 
-    .table-scroll {
-      overflow-x: auto;
-    }
+    .table-scroll { overflow-x: auto; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th, td { padding: 9px 11px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+    th { background: rgba(3, 7, 18, 0.95); color: var(--gold-primary); font-weight: 700; text-transform: uppercase; font-size: 0.74rem; position: sticky; top: 0; z-index: 5; }
+    tr:hover td { background: rgba(245, 158, 11, 0.06); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
 
-    th, td {
-      padding: 9px 11px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
+    .print-only-header { display: none; }
 
-    th {
-      background: rgba(3, 7, 18, 0.95);
-      color: var(--gold-primary);
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 0.74rem;
-      letter-spacing: 0.5px;
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    }
-
-    tr:hover td {
-      background: rgba(245, 158, 11, 0.06);
-    }
-
-    .num {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Print Kop (Disembunyikan di Layar) */
-    .print-only-header {
-      display: none;
-    }
-
-    /* =========================================================
-       PRINT MODE: RAPI, RAPAT, PRESISI, TANPA DESKRIPSI ATAS
-       ========================================================= */
     @media print {
-      @page {
-        size: A4 portrait;
-        margin: 7mm;
-      }
-
-      html, body {
-        background: #ffffff !important;
-        color: #000000 !important;
-        height: auto !important;
-      }
-
-      .bg-light-orb,
-      #loading-screen,
-      .header-3d,
-      .screen-subtitle,
-      .nav-tabs-3d,
-      .sync-bar,
-      .no-print {
-        display: none !important;
-      }
-
-      .wrapper {
-        max-width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-
-      .print-only-header {
-        display: block !important;
-        text-align: center;
-        border-bottom: 2pt solid #000000;
-        padding-bottom: 4pt;
-        margin-bottom: 6pt;
-      }
-
-      .print-only-header h2 {
-        font-size: 12pt !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        margin: 0 0 2pt 0 !important;
-      }
-
-      .print-only-header p {
-        font-size: 7.5pt !important;
-        color: #111111 !important;
-        margin: 0 !important;
-      }
-
-      .page-section {
-        display: none !important;
-      }
-      .page-section.active {
-        display: block !important;
-      }
-
-      .kpi-grid-3d {
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 4pt !important;
-        margin-bottom: 6pt !important;
-      }
-
-      .card-3d {
-        background: #ffffff !important;
-        border: 0.8pt solid #333333 !important;
-        border-radius: 2pt !important;
-        padding: 4pt 6pt !important;
-        box-shadow: none !important;
-      }
-
-      .kpi-title {
-        font-size: 6.5pt !important;
-        color: #333333 !important;
-      }
-
-      .kpi-num {
-        font-size: 9pt !important;
-        color: #000000 !important;
-        margin-top: 1pt !important;
-      }
-
-      .panel-3d {
-        background: #ffffff !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-
-      .panel-header h3 {
-        font-size: 9pt !important;
-        color: #000000 !important;
-      }
-
-      table {
-        width: 100% !important;
-        font-size: 7.5pt !important;
-        border-collapse: collapse !important;
-      }
-
-      th {
-        background: #e5e7eb !important;
-        color: #000000 !important;
-        border: 0.6pt solid #333333 !important;
-        padding: 2.5pt 3.5pt !important;
-      }
-
-      td {
-        color: #000000 !important;
-        border: 0.5pt solid #666666 !important;
-        padding: 2pt 3.5pt !important;
-      }
-
-      .c-gold, .c-green, .c-red, .c-cyan {
-        color: #000000 !important;
-      }
+      @page { size: A4 portrait; margin: 7mm; }
+      html, body { background: #ffffff !important; color: #000000 !important; height: auto !important; }
+      .bg-light-orb, #loading-screen, .header-3d, .screen-subtitle, .nav-tabs-3d, .sync-bar, .no-print { display: none !important; }
+      .wrapper { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+      .print-only-header { display: block !important; text-align: center; border-bottom: 2pt solid #000; padding-bottom: 4pt; margin-bottom: 6pt; }
+      .print-only-header h2 { font-size: 12pt !important; font-weight: 900 !important; color: #000 !important; margin: 0 0 2pt 0 !important; }
+      .print-only-header p { font-size: 7.5pt !important; color: #111 !important; margin: 0 !important; }
+      .page-section { display: none !important; }
+      .page-section.active { display: block !important; }
+      .kpi-grid-3d { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 4pt !important; margin-bottom: 6pt !important; }
+      .card-3d { background: #fff !important; border: 0.8pt solid #333 !important; border-radius: 2pt !important; padding: 4pt 6pt !important; box-shadow: none !important; }
+      .kpi-title { font-size: 6.5pt !important; color: #333 !important; }
+      .kpi-num { font-size: 9pt !important; color: #000 !important; }
+      .panel-3d { background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+      .panel-header h3 { font-size: 9pt !important; color: #000 !important; }
+      table { width: 100% !important; font-size: 7.5pt !important; border-collapse: collapse !important; }
+      th { background: #e5e7eb !important; color: #000 !important; border: 0.6pt solid #333 !important; padding: 2.5pt 3.5pt !important; }
+      td { color: #000 !important; border: 0.5pt solid #666 !important; padding: 2pt 3.5pt !important; }
+      .c-gold, .c-green, .c-red, .c-cyan { color: #000 !important; }
     }
   </style>
 </head>
@@ -508,8 +316,8 @@
   <!-- Loading Screen -->
   <div id="loading-screen">
     <div class="loader-cube"></div>
-    <div style="font-weight:800; color:var(--gold-light); letter-spacing:1px;">MEMUAT DATABASE REAL-TIME...</div>
-    <div style="font-size:0.8rem; color:var(--text-muted);">Menata tabel presisi & mengonversi format tanggal</div>
+    <div style="font-weight:800; color:var(--gold-light); letter-spacing:1px;">MEMBACA DATABASE KEUANGAN REAL-TIME...</div>
+    <div style="font-size:0.8rem; color:var(--text-muted);">Menyesuaikan struktur multi-kolom Excel & format tanggal</div>
   </div>
 
   <div class="wrapper">
@@ -534,7 +342,7 @@
       </div>
     </header>
 
-    <!-- Navigasi 5 Halaman Sesuai Permintaan -->
+    <!-- Navigasi 5 Halaman -->
     <nav class="nav-tabs-3d">
       <button class="tab-btn active" onclick="switchPage('page-dashboard', 'Dashboard Utama', this)">📊 Dashboard</button>
       <button class="tab-btn" onclick="switchPage('page-cash', 'Tabungan Cash', this)">💵 Tabungan Cash</button>
@@ -547,49 +355,30 @@
     <div class="sync-bar">
       <div class="live-indicator">
         <span class="pulse-dot"></span>
-        <span id="db-status-text">Menghubungkan ke database.xlsx secara real-time...</span>
+        <span id="db-status-text">Menghubungkan ke database_keuangan_sync.xlsx secara real-time...</span>
       </div>
-      <div style="color:var(--text-muted); font-size:0.8rem;" id="db-meta-info">
-        Urutan: Terbaru ke Terlama
-      </div>
+      <div style="color:var(--text-muted); font-size:0.8rem;">Urutan: Terbaru ke Terlama</div>
     </div>
 
-    <!-- =========================================================
-         1. HALAMAN DASHBOARD
-         ========================================================= -->
+    <!-- 1. DASHBOARD -->
     <section id="page-dashboard" class="page-section active">
       <div class="kpi-grid-3d">
-        <div class="card-3d">
-          <div class="kpi-title">Saldo Total Global</div>
-          <div class="kpi-num c-gold" id="dash-global">Rp 0</div>
-        </div>
-        <div class="card-3d">
-          <div class="kpi-title">Tabungan Cash</div>
-          <div class="kpi-num c-green" id="dash-cash">Rp 0</div>
-        </div>
-        <div class="card-3d">
-          <div class="kpi-title">Tabungan Rekening</div>
-          <div class="kpi-num c-cyan" id="dash-rek">Rp 0</div>
-        </div>
-        <div class="card-3d">
-          <div class="kpi-title">Net Hutang / Piutang</div>
-          <div class="kpi-num c-red" id="dash-hp">Rp 0</div>
-        </div>
+        <div class="card-3d"><div class="kpi-title">Saldo Total Global (Cash + Rek)</div><div class="kpi-num c-gold" id="dash-global">Rp 0</div></div>
+        <div class="card-3d"><div class="kpi-title">Tabungan Cash</div><div class="kpi-num c-green" id="dash-cash">Rp 0</div></div>
+        <div class="card-3d"><div class="kpi-title">Tabungan Rekening</div><div class="kpi-num c-cyan" id="dash-rek">Rp 0</div></div>
+        <div class="card-3d"><div class="kpi-title">Net Hutang / Piutang</div><div class="kpi-num c-red" id="dash-hp">Rp 0</div></div>
       </div>
 
-      <!-- Cuplikan Data dari Setiap Halaman (Di Bawahnya) -->
       <div class="panel-3d">
-        <div class="panel-header">
-          <h3>📌 Cuplikan Saldo & Ringkasan Per Kategori (Real-Time Terbaru)</h3>
-        </div>
+        <div class="panel-header"><h3>📌 Cuplikan Saldo & Ringkasan Per Sektor (Terbaru)</h3></div>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
                 <th style="width:40px;">No</th>
-                <th>Kategori / Sektor Pos</th>
-                <th class="num">Total Pemasukan (Rp)</th>
-                <th class="num">Total Pengeluaran (Rp)</th>
+                <th>Sektor / Kategori</th>
+                <th class="num">Total Masuk (Rp)</th>
+                <th class="num">Total Keluar (Rp)</th>
                 <th class="num">Saldo Akhir (Rp)</th>
               </tr>
             </thead>
@@ -599,32 +388,23 @@
       </div>
     </section>
 
-    <!-- =========================================================
-         2. HALAMAN TABUNGAN CASH
-         ========================================================= -->
+    <!-- 2. TABUNGAN CASH -->
     <section id="page-cash" class="page-section">
       <div class="kpi-grid-3d">
-        <div class="card-3d">
-          <div class="kpi-title">Total Saldo Cash</div>
-          <div class="kpi-num c-green" id="cash-total-saldo">Rp 0</div>
-        </div>
+        <div class="card-3d"><div class="kpi-title">Total Saldo Cash</div><div class="kpi-num c-green" id="cash-total-saldo">Rp 0</div></div>
       </div>
       <div class="panel-3d">
-        <div class="panel-header">
-          <h3>💵 Rincian Data Tabungan Cash (Presisi & Rapat)</h3>
-          <input type="text" placeholder="Cari data cash..." oninput="filterTable('cash', this.value)" />
-        </div>
+        <div class="panel-header"><h3>💵 Rincian Data Tabungan Cash (Presisi & Rapat)</h3></div>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
                 <th style="width:40px;">No</th>
                 <th>Tanggal</th>
-                <th>Kategori</th>
-                <th>Keterangan / Uraian</th>
+                <th>Rincian / Keterangan</th>
                 <th class="num">Masuk (Rp)</th>
                 <th class="num">Keluar (Rp)</th>
-                <th class="num">Saldo (Rp)</th>
+                <th class="num">Sisa Saldo (Rp)</th>
               </tr>
             </thead>
             <tbody id="tbody-cash"></tbody>
@@ -633,32 +413,23 @@
       </div>
     </section>
 
-    <!-- =========================================================
-         3. HALAMAN TABUNGAN REKENING
-         ========================================================= -->
+    <!-- 3. TABUNGAN REKENING -->
     <section id="page-rekening" class="page-section">
       <div class="kpi-grid-3d">
-        <div class="card-3d">
-          <div class="kpi-title">Total Saldo Rekening</div>
-          <div class="kpi-num c-cyan" id="rek-total-saldo">Rp 0</div>
-        </div>
+        <div class="card-3d"><div class="kpi-title">Total Saldo Rekening</div><div class="kpi-num c-cyan" id="rek-total-saldo">Rp 0</div></div>
       </div>
       <div class="panel-3d">
-        <div class="panel-header">
-          <h3>💳 Rincian Data Tabungan Rekening (Presisi & Rapat)</h3>
-          <input type="text" placeholder="Cari data rekening..." oninput="filterTable('rek', this.value)" />
-        </div>
+        <div class="panel-header"><h3>💳 Rincian Data Tabungan Rekening (Presisi & Rapat)</h3></div>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
                 <th style="width:40px;">No</th>
                 <th>Tanggal</th>
-                <th>Kategori / Bank</th>
-                <th>Keterangan / Uraian</th>
+                <th>Rincian / Keterangan</th>
                 <th class="num">Masuk (Rp)</th>
                 <th class="num">Keluar (Rp)</th>
-                <th class="num">Saldo (Rp)</th>
+                <th class="num">Total Saldo (Rp)</th>
               </tr>
             </thead>
             <tbody id="tbody-rekening"></tbody>
@@ -667,55 +438,33 @@
       </div>
     </section>
 
-    <!-- =========================================================
-         4. HALAMAN HUTANG PIUTANG (DIPISAH PER ORANG)
-         ========================================================= -->
+    <!-- 4. HUTANG PIUTANG -->
     <section id="page-hutang" class="page-section">
       <div class="kpi-grid-3d">
-        <div class="card-3d">
-          <div class="kpi-title">Total Selisih Hutang / Piutang</div>
-          <div class="kpi-num c-red" id="hp-total-net">Rp 0</div>
-        </div>
+        <div class="card-3d"><div class="kpi-title">Total Selisih Hutang / Piutang</div><div class="kpi-num c-red" id="hp-total-net">Rp 0</div></div>
       </div>
-      <div id="hp-per-person-container">
-        <!-- Tabel akan digenerate otomatis terpisah per orang -->
-      </div>
+      <div id="hp-per-person-container"></div>
     </section>
 
-    <!-- =========================================================
-         5. HALAMAN TABUNGAN NAZILA KARTIKA (TERPISAH EKSKLUSIF)
-         ========================================================= -->
+    <!-- 5. TABUNGAN NAZILA KARTIKA -->
     <section id="page-nazila" class="page-section">
       <div class="kpi-grid-3d">
-        <div class="card-3d">
-          <div class="kpi-title">Saldo Khusus Tabungan Nazila Kartika</div>
-          <div class="kpi-num c-gold" id="nazila-total-saldo">Rp 0</div>
-        </div>
-        <div class="card-3d">
-          <div class="kpi-title">Total Setoran Nazila</div>
-          <div class="kpi-num c-green" id="nazila-total-in">Rp 0</div>
-        </div>
-        <div class="card-3d">
-          <div class="kpi-title">Total Penarikan Nazila</div>
-          <div class="kpi-num c-red" id="nazila-total-out">Rp 0</div>
-        </div>
+        <div class="card-3d"><div class="kpi-title">Saldo Khusus Tabungan Nazila Kartika</div><div class="kpi-num c-gold" id="nazila-total-saldo">Rp 0</div></div>
+        <div class="card-3d"><div class="kpi-title">Total Setoran Nazila</div><div class="kpi-num c-green" id="nazila-total-in">Rp 0</div></div>
+        <div class="card-3d"><div class="kpi-title">Total Penarikan Nazila</div><div class="kpi-num c-red" id="nazila-total-out">Rp 0</div></div>
       </div>
       <div class="panel-3d">
-        <div class="panel-header">
-          <h3>💎 Catatan Mutasi Tabungan Nazila Kartika (Eksklusif Terpisah)</h3>
-          <input type="text" placeholder="Cari mutasi Nazila..." oninput="filterTable('nazila', this.value)" />
-        </div>
+        <div class="panel-header"><h3>💎 Catatan Mutasi Tabungan Nazila Kartika (Eksklusif Terpisah)</h3></div>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
                 <th style="width:40px;">No</th>
                 <th>Tanggal</th>
-                <th>Kategori</th>
-                <th>Keterangan / Uraian</th>
-                <th class="num">Setor Masuk (Rp)</th>
-                <th class="num">Tarik Keluar (Rp)</th>
-                <th class="num">Nominal Saldo (Rp)</th>
+                <th>Rincian / Keterangan</th>
+                <th class="num">Jumlah Masuk (Rp)</th>
+                <th class="num">Jumlah Keluar (Rp)</th>
+                <th class="num">Saldo (Rp)</th>
               </tr>
             </thead>
             <tbody id="tbody-nazila"></tbody>
@@ -726,12 +475,11 @@
   </div>
 
   <script>
-    let GLOBAL_RECORDS = {
+    let GLOBAL_DATA = {
       cash: [],
       rekening: [],
-      hutangPiutang: [], // Dikelompokkan per orang
-      nazila: [],
-      summary: []
+      hutangPiutang: {},
+      nazila: []
     };
 
     function requestFull() {
@@ -775,50 +523,40 @@
       return parseFloat(clean) || 0;
     }
 
-    // Konversi Tanggal Excel Serial (misal 45500) menjadi Format Tanggal Indonesia
     function parseDateCell(val) {
-      if (!val) return '-';
-      if (typeof val === 'number') {
-        if (val > 20000 && val < 60000) {
-          const d = new Date(Math.round((val - 25569) * 86400 * 1000));
-          return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-        }
+      if (!val || val === 0 || val === '0') return '-';
+      if (typeof val === 'number' && val > 20000 && val < 60000) {
+        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+        return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
       }
-      const str = String(val).trim();
-      // Jika format YYYY-MM-DD atau DD/MM/YYYY
-      const parsed = Date.parse(str);
-      if (!isNaN(parsed)) {
-        return new Date(parsed).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-      }
-      return str;
+      return String(val);
     }
 
-    // Ambil timestamp untuk sorting dari terbaru ke terlama
-    function parseTimestamp(dateStr) {
-      const parsed = Date.parse(dateStr);
+    function parseTimestamp(val) {
+      if (typeof val === 'number' && val > 20000) return val;
+      const parsed = Date.parse(val);
       if (!isNaN(parsed)) return parsed;
       return 0;
     }
 
     async function loadRealtimeDatabase() {
-      const loader = document.getElementById('loading-screen');
-      const statusText = document.getElementById('db-status-text');
-      loader.style.display = 'flex';
-      loader.style.opacity = '1';
+      const candidateFiles = ['database_keuangan_sync.xlsx', 'database.xlsx', 'data.xlsx'];
+      let buffer = null;
 
-      try {
-        const response = await fetch(`./database.xlsx?v=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const arrayBuffer = await response.arrayBuffer();
-        processWorkbook(arrayBuffer, 'database.xlsx');
-      } catch (err) {
-        statusText.textContent = 'Gagal memuat otomatis. Silakan gunakan tombol "Muat Excel".';
-        console.error(err);
-      } finally {
-        setTimeout(() => {
-          loader.style.opacity = '0';
-          setTimeout(() => { loader.style.display = 'none'; }, 400);
-        }, 300);
+      for (const fileName of candidateFiles) {
+        try {
+          const res = await fetch(`./${fileName}?v=${Date.now()}`, { cache: 'no-store' });
+          if (res.ok) {
+            buffer = await res.arrayBuffer();
+            break;
+          }
+        } catch (e) {}
+      }
+
+      if (buffer) {
+        processWorkbook(buffer);
+      } else {
+        document.getElementById('db-status-text').textContent = 'File Excel tidak ditemukan otomatis. Klik "Muat Excel" di atas.';
       }
     }
 
@@ -826,175 +564,186 @@
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = evt => processWorkbook(evt.target.result, file.name);
+      reader.onload = evt => processWorkbook(evt.target.result);
       reader.readAsArrayBuffer(file);
     });
 
-    function processWorkbook(buffer, fileName) {
+    function processWorkbook(buffer) {
       const wb = XLSX.read(buffer, { type: 'array' });
       
-      GLOBAL_RECORDS.cash = [];
-      GLOBAL_RECORDS.rekening = [];
-      GLOBAL_RECORDS.hutangPiutangMap = {};
-      GLOBAL_RECORDS.nazila = [];
-      GLOBAL_RECORDS.summary = [];
+      GLOBAL_DATA.cash = [];
+      GLOBAL_DATA.rekening = [];
+      GLOBAL_DATA.hutangPiutang = {};
+      GLOBAL_DATA.nazila = [];
 
       wb.SheetNames.forEach(sheetName => {
         const sheet = wb.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-        
-        let sMasuk = 0, sKeluar = 0, sSaldo = 0;
-        const lowerSheet = sheetName.toLowerCase();
+        const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-        rows.forEach(row => {
-          const keys = Object.keys(row);
-          if (!keys.length) return;
-
-          const getVal = (kws) => {
-            const k = keys.find(key => kws.some(w => key.toLowerCase().includes(w)));
-            return k ? row[k] : '';
-          };
-
-          const rawDate = getVal(['tanggal', 'tgl', 'date', 'waktu']);
-          const tanggal = parseDateCell(rawDate);
-          const kategori = String(getVal(['kategori', 'akun', 'pos', 'jenis', 'nama']) || sheetName);
-          const keterangan = String(getVal(['keterangan', 'uraian', 'deskripsi', 'catatan', 'nama_orang', 'pihak']) || '-');
-          
-          const masuk = parseNum(getVal(['masuk', 'debit', 'setor', 'pemasukan']));
-          const keluar = parseNum(getVal(['keluar', 'kredit', 'tarik', 'pengeluaran']));
-          const nominal = parseNum(getVal(['saldo', 'nominal', 'jumlah', 'total', 'nilai']));
-
-          if (masuk === 0 && keluar === 0 && nominal === 0 && keterangan === '-') return;
-
-          sMasuk += masuk;
-          sKeluar += keluar;
-          sSaldo += (masuk > 0 || keluar > 0) ? (masuk - keluar) : nominal;
-
-          const item = {
-            tanggal,
-            rawDate: parseTimestamp(rawDate),
-            kategori,
-            keterangan,
-            masuk,
-            keluar,
-            nominal: nominal !== 0 ? nominal : (masuk - keluar)
-          };
-
-          // Pengelompokan Halaman Sesuai Permintaan
-          if (lowerSheet.includes('nazila')) {
-            GLOBAL_RECORDS.nazila.push(item);
-          } else if (lowerSheet.includes('cash') || lowerSheet.includes('tunai')) {
-            GLOBAL_RECORDS.cash.push(item);
-          } else if (lowerSheet.includes('rekening') || lowerSheet.includes('bank') || lowerSheet.includes('atm')) {
-            GLOBAL_RECORDS.rekening.push(item);
-          } else if (lowerSheet.includes('hutang') || lowerSheet.includes('piutang') || lowerSheet.includes('hp')) {
-            // Kelompokkan per orang berdasarkan Keterangan / Kategori
-            const person = keterangan !== '-' ? keterangan : kategori;
-            if (!GLOBAL_RECORDS.hutangPiutangMap[person]) {
-              GLOBAL_RECORDS.hutangPiutangMap[person] = [];
+        if (sheetName === 'Mutasi_Cash_Rekening') {
+          // Kolom 0-5 untuk Cash, Kolom 7-11 untuk Rekening
+          rawRows.forEach((r, idx) => {
+            if (idx < 5) return; // Lewati header
+            // CASH
+            const tglCash = r[1];
+            const rincianCash = r[2];
+            const masukCash = parseNum(r[3]);
+            const keluarCash = parseNum(r[4]);
+            const saldoCash = parseNum(r[5]);
+            if (tglCash || rincianCash || masukCash || keluarCash) {
+              GLOBAL_DATA.cash.push({
+                tanggal: parseDateCell(tglCash),
+                rawDate: parseTimestamp(tglCash),
+                keterangan: String(rincianCash || '-'),
+                masuk: masukCash,
+                keluar: keluarCash,
+                saldo: saldoCash
+              });
             }
-            GLOBAL_RECORDS.hutangPiutangMap[person].push(item);
-          } else {
-            // Default masuk cash/umum jika tidak spesifik
-            GLOBAL_RECORDS.cash.push(item);
-          }
-        });
 
-        GLOBAL_RECORDS.summary.push({
-          sheet: sheetName,
-          masuk: sMasuk,
-          keluar: sKeluar,
-          saldo: sSaldo
-        });
+            // REKENING
+            const tglRek = r[7];
+            const rincianRek = r[8];
+            const masukRek = parseNum(r[9]);
+            const keluarRek = parseNum(r[10]);
+            const saldoRek = parseNum(r[11]);
+            if (tglRek || rincianRek || masukRek || keluarRek) {
+              GLOBAL_DATA.rekening.push({
+                tanggal: parseDateCell(tglRek),
+                rawDate: parseTimestamp(tglRek),
+                keterangan: String(rincianRek || '-'),
+                masuk: masukRek,
+                keluar: keluarRek,
+                saldo: saldoRek
+              });
+            }
+          });
+        } else if (sheetName === 'Piutang_Gabungan') {
+          let currentPerson = 'Umum';
+          rawRows.forEach((r, idx) => {
+            if (idx < 4) return;
+            const namaPeminjam = String(r[0]).trim();
+            if (namaPeminjam && namaPeminjam !== '0' && namaPeminjam !== 'NAMA PEMINJAM') {
+              currentPerson = namaPeminjam;
+            }
+            const tgl = r[1];
+            const ket = r[2];
+            const pinjam = parseNum(r[3]);
+            const bayar = parseNum(r[4]);
+
+            if ((pinjam > 0 || bayar > 0 || ket) && ket !== '0' && ket !== 0) {
+              if (!GLOBAL_DATA.hutangPiutang[currentPerson]) {
+                GLOBAL_DATA.hutangPiutang[currentPerson] = [];
+              }
+              GLOBAL_DATA.hutangPiutang[currentPerson].push({
+                tanggal: parseDateCell(tgl),
+                rawDate: parseTimestamp(tgl),
+                keterangan: String(ket || '-'),
+                masuk: pinjam,   // Pinjam (bertambah)
+                keluar: bayar    // Bayar / Angsuran
+              });
+            }
+          });
+        } else if (sheetName === 'Tabungan_Nazila') {
+          rawRows.forEach((r, idx) => {
+            if (idx < 3) return; // Lewati header
+            const tgl = r[1];
+            const rincian = r[2];
+            const masuk = parseNum(r[3]);
+            const keluar = parseNum(r[4]);
+            const saldo = parseNum(r[5]);
+
+            if (tgl || rincian || masuk || keluar) {
+              GLOBAL_DATA.nazila.push({
+                tanggal: parseDateCell(tgl),
+                rawDate: parseTimestamp(tgl),
+                keterangan: String(rincian || '-'),
+                masuk: masuk,
+                keluar: keluar,
+                saldo: saldo
+              });
+            }
+          });
+        }
       });
 
-      // URUTKAN SEMUA DARI TERBARU KE TERLAMA
+      // Urutkan dari terbaru ke terlama
       const sortByNewest = (a, b) => b.rawDate - a.rawDate;
-      GLOBAL_RECORDS.cash.sort(sortByNewest);
-      GLOBAL_RECORDS.rekening.sort(sortByNewest);
-      GLOBAL_RECORDS.nazila.sort(sortByNewest);
-      Object.keys(GLOBAL_RECORDS.hutangPiutangMap).forEach(p => {
-        GLOBAL_RECORDS.hutangPiutangMap[p].sort(sortByNewest);
+      GLOBAL_DATA.cash.sort(sortByNewest);
+      GLOBAL_DATA.rekening.sort(sortByNewest);
+      GLOBAL_DATA.nazila.sort(sortByNewest);
+      Object.keys(GLOBAL_DATA.hutangPiutang).forEach(p => {
+        GLOBAL_DATA.hutangPiutang[p].sort(sortByNewest);
       });
 
       renderAllViews();
-      document.getElementById('db-status-text').textContent =
-        `Tersinkron Real-Time (${wb.SheetNames.length} Sheet) • Diurutkan Terbaru ke Terlama`;
+      document.getElementById('db-status-text').textContent = 'Tersinkron Real-Time Sempurna dari database_keuangan_sync.xlsx';
     }
 
     function renderAllViews() {
       // 1. Tabungan Cash
-      let cashSaldo = 0;
+      let totalCash = 0;
       const tbodyCash = document.getElementById('tbody-cash');
-      tbodyCash.innerHTML = GLOBAL_RECORDS.cash.map((r, i) => {
-        cashSaldo += (r.masuk - r.keluar);
+      tbodyCash.innerHTML = GLOBAL_DATA.cash.map((r, i) => {
+        totalCash = r.saldo !== 0 ? r.saldo : (totalCash + r.masuk - r.keluar);
         return `
           <tr>
             <td>${i + 1}</td>
             <td>${r.tanggal}</td>
-            <td>${r.kategori}</td>
             <td>${r.keterangan}</td>
             <td class="num c-green">${r.masuk ? formatRp(r.masuk) : '-'}</td>
             <td class="num c-red">${r.keluar ? formatRp(r.keluar) : '-'}</td>
-            <td class="num c-gold"><strong>${formatRp(r.nominal || cashSaldo)}</strong></td>
+            <td class="num c-gold"><strong>${formatRp(r.saldo || totalCash)}</strong></td>
           </tr>
         `;
-      }).join('') || `<tr><td colspan="7" style="text-align:center;">Belum ada data cash.</td></tr>`;
+      }).join('') || `<tr><td colspan="6" style="text-align:center;">Tidak ada data cash.</td></tr>`;
 
       // 2. Tabungan Rekening
-      let rekSaldo = 0;
+      let totalRek = 0;
       const tbodyRek = document.getElementById('tbody-rekening');
-      tbodyRek.innerHTML = GLOBAL_RECORDS.rekening.map((r, i) => {
-        rekSaldo += (r.masuk - r.keluar);
+      tbodyRek.innerHTML = GLOBAL_DATA.rekening.map((r, i) => {
+        totalRek = r.saldo !== 0 ? r.saldo : (totalRek + r.masuk - r.keluar);
         return `
           <tr>
             <td>${i + 1}</td>
             <td>${r.tanggal}</td>
-            <td>${r.kategori}</td>
             <td>${r.keterangan}</td>
             <td class="num c-green">${r.masuk ? formatRp(r.masuk) : '-'}</td>
             <td class="num c-red">${r.keluar ? formatRp(r.keluar) : '-'}</td>
-            <td class="num c-cyan"><strong>${formatRp(r.nominal || rekSaldo)}</strong></td>
+            <td class="num c-cyan"><strong>${formatRp(r.saldo || totalRek)}</strong></td>
           </tr>
         `;
-      }).join('') || `<tr><td colspan="7" style="text-align:center;">Belum ada data rekening.</td></tr>`;
+      }).join('') || `<tr><td colspan="6" style="text-align:center;">Tidak ada data rekening.</td></tr>`;
 
       // 3. Tabungan Nazila (Eksklusif Terpisah)
       let nazIn = 0, nazOut = 0, nazNet = 0;
       const tbodyNazila = document.getElementById('tbody-nazila');
-      tbodyNazila.innerHTML = GLOBAL_RECORDS.nazila.map((r, i) => {
+      tbodyNazila.innerHTML = GLOBAL_DATA.nazila.map((r, i) => {
         nazIn += r.masuk;
         nazOut += r.keluar;
-        nazNet += (r.masuk - r.keluar);
+        nazNet = r.saldo !== 0 ? r.saldo : (nazNet + r.masuk - r.keluar);
         return `
           <tr>
             <td>${i + 1}</td>
             <td>${r.tanggal}</td>
-            <td>${r.kategori}</td>
             <td>${r.keterangan}</td>
             <td class="num c-green">${r.masuk ? formatRp(r.masuk) : '-'}</td>
             <td class="num c-red">${r.keluar ? formatRp(r.keluar) : '-'}</td>
-            <td class="num c-gold"><strong>${formatRp(r.nominal || nazNet)}</strong></td>
+            <td class="num c-gold"><strong>${formatRp(r.saldo || nazNet)}</strong></td>
           </tr>
         `;
-      }).join('') || `<tr><td colspan="7" style="text-align:center;">Tidak ada data Tabungan Nazila.</td></tr>`;
-
-      document.getElementById('cash-total-saldo').textContent = formatRp(cashSaldo);
-      document.getElementById('rek-total-saldo').textContent = formatRp(rekSaldo);
-      document.getElementById('nazila-total-saldo').textContent = formatRp(nazNet);
-      document.getElementById('nazila-total-in').textContent = formatRp(nazIn);
-      document.getElementById('nazila-total-out').textContent = formatRp(nazOut);
+      }).join('') || `<tr><td colspan="6" style="text-align:center;">Tidak ada data Nazila.</td></tr>`;
 
       // 4. Hutang Piutang (Dipisah Per Orang)
       let hpTotalNet = 0;
       const hpContainer = document.getElementById('hp-per-person-container');
-      const persons = Object.keys(GLOBAL_RECORDS.hutangPiutangMap);
+      const persons = Object.keys(GLOBAL_DATA.hutangPiutang);
 
       if (persons.length === 0) {
-        hpContainer.innerHTML = `<div class="panel-3d"><div style="text-align:center; padding:15px; color:var(--text-muted);">Tidak ada data hutang piutang terpisah.</div></div>`;
+        hpContainer.innerHTML = `<div class="panel-3d"><div style="text-align:center; padding:15px; color:var(--text-muted);">Tidak ada data hutang piutang.</div></div>`;
       } else {
         hpContainer.innerHTML = persons.map(person => {
-          const rows = GLOBAL_RECORDS.hutangPiutangMap[person];
+          const rows = GLOBAL_DATA.hutangPiutang[person];
           let pNet = 0;
           const rowsHtml = rows.map((r, i) => {
             pNet += (r.masuk - r.keluar);
@@ -1002,10 +751,9 @@
               <tr>
                 <td>${i + 1}</td>
                 <td>${r.tanggal}</td>
-                <td>${r.kategori}</td>
                 <td>${r.keterangan}</td>
-                <td class="num c-green">${r.masuk ? formatRp(r.masuk) : '-'}</td>
-                <td class="num c-red">${r.keluar ? formatRp(r.keluar) : '-'}</td>
+                <td class="num c-red">${r.masuk ? formatRp(r.masuk) : '-'}</td>
+                <td class="num c-green">${r.keluar ? formatRp(r.keluar) : '-'}</td>
                 <td class="num c-red"><strong>${formatRp(pNet)}</strong></td>
               </tr>
             `;
@@ -1016,8 +764,8 @@
           return `
             <div class="panel-3d">
               <div class="panel-header">
-                <h3>👤 Rincian Hutang / Piutang: <span style="color:var(--cyan-neon)">${person}</span></h3>
-                <span style="font-size:0.85rem; color:var(--gold-light);">Subtotal: ${formatRp(pNet)}</span>
+                <h3>👤 Peminjam: <span style="color:var(--cyan-neon)">${person}</span></h3>
+                <span style="font-size:0.85rem; color:var(--gold-light);">Sisa Pinjaman: ${formatRp(pNet)}</span>
               </div>
               <div class="table-scroll">
                 <table>
@@ -1025,11 +773,10 @@
                     <tr>
                       <th style="width:40px;">No</th>
                       <th>Tanggal</th>
-                      <th>Kategori</th>
-                      <th>Keterangan</th>
-                      <th class="num">Bertambah (Rp)</th>
-                      <th class="num">Dibayar (Rp)</th>
-                      <th class="num">Sisa / Saldo (Rp)</th>
+                      <th>Keterangan / Rincian</th>
+                      <th class="num">Pinjam (Rp)</th>
+                      <th class="num">Bayar / Angsuran (Rp)</th>
+                      <th class="num">Sisa Saldo (Rp)</th>
                     </tr>
                   </thead>
                   <tbody>${rowsHtml}</tbody>
@@ -1040,52 +787,31 @@
         }).join('');
       }
 
-      document.getElementById('hp-total-net').textContent = formatRp(hpTotalNet);
+      // Update KPI
+      const lastCash = GLOBAL_DATA.cash.length > 0 ? (GLOBAL_DATA.cash[0].saldo || totalCash) : 0;
+      const lastRek = GLOBAL_DATA.rekening.length > 0 ? (GLOBAL_DATA.rekening[0].saldo || totalRek) : 0;
+      const globalSaldo = lastCash + lastRek;
 
-      // 5. Dashboard (Tabungan Nazila TIDAK dicampur ke global)
-      const globalSaldo = cashSaldo + rekSaldo; // Global hanya Cash + Rekening
       document.getElementById('dash-global').textContent = formatRp(globalSaldo);
-      document.getElementById('dash-cash').textContent = formatRp(cashSaldo);
-      document.getElementById('dash-rek').textContent = formatRp(rekSaldo);
+      document.getElementById('dash-cash').textContent = formatRp(lastCash);
+      document.getElementById('dash-rek').textContent = formatRp(lastRek);
       document.getElementById('dash-hp').textContent = formatRp(hpTotalNet);
 
-      // Cuplikan Data di Dashboard (Bawahnya)
-      const tbodySummary = document.getElementById('tbody-dash-summary');
-      tbodySummary.innerHTML = `
-        <tr>
-          <td>1</td>
-          <td><strong>Tabungan Cash</strong></td>
-          <td class="num c-green">-</td>
-          <td class="num c-red">-</td>
-          <td class="num c-gold"><strong>${formatRp(cashSaldo)}</strong></td>
-        </tr>
-        <tr>
-          <td>2</td>
-          <td><strong>Tabungan Rekening</strong></td>
-          <td class="num c-green">-</td>
-          <td class="num c-red">-</td>
-          <td class="num c-cyan"><strong>${formatRp(rekSaldo)}</strong></td>
-        </tr>
-        <tr>
-          <td>3</td>
-          <td><strong>Hutang / Piutang</strong></td>
-          <td class="num c-green">-</td>
-          <td class="num c-red">-</td>
-          <td class="num c-red"><strong>${formatRp(hpTotalNet)}</strong></td>
-        </tr>
-        <tr>
-          <td>4</td>
-          <td><strong>Tabungan Nazila Kartika (Eksklusif Terpisah)</strong></td>
-          <td class="num c-green">${formatRp(nazIn)}</td>
-          <td class="num c-red">${formatRp(nazOut)}</td>
-          <td class="num c-gold"><strong>${formatRp(nazNet)}</strong></td>
-        </tr>
-      `;
-    }
+      document.getElementById('cash-total-saldo').textContent = formatRp(lastCash);
+      document.getElementById('rek-total-saldo').textContent = formatRp(lastRek);
+      document.getElementById('hp-total-net').textContent = formatRp(hpTotalNet);
 
-    function filterTable(type, keyword) {
-      const q = keyword.toLowerCase().trim();
-      // Bisa dikembangkan sesuai kebutuhan pencarian spesifik tabel
+      document.getElementById('nazila-total-saldo').textContent = formatRp(nazNet);
+      document.getElementById('nazila-total-in').textContent = formatRp(nazIn);
+      document.getElementById('nazila-total-out').textContent = formatRp(nazOut);
+
+      // Cuplikan Summary di Dashboard
+      document.getElementById('tbody-dash-summary').innerHTML = `
+        <tr><td>1</td><td><strong>Tabungan Cash (Tunai)</strong></td><td class="num">-</td><td class="num">-</td><td class="num c-green"><strong>${formatRp(lastCash)}</strong></td></tr>
+        <tr><td>2</td><td><strong>Tabungan Rekening Bank</strong></td><td class="num">-</td><td class="num">-</td><td class="num c-cyan"><strong>${formatRp(lastRek)}</strong></td></tr>
+        <tr><td>3</td><td><strong>Total Hutang / Piutang</strong></td><td class="num">-</td><td class="num">-</td><td class="num c-red"><strong>${formatRp(hpTotalNet)}</strong></td></tr>
+        <tr><td>4</td><td><strong>Tabungan Nazila Kartika (Eksklusif Terpisah)</strong></td><td class="num c-green">${formatRp(nazIn)}</td><td class="num c-red">${formatRp(nazOut)}</td><td class="num c-gold"><strong>${formatRp(nazNet)}</strong></td></tr>
+      `;
     }
   </script>
 </body>
