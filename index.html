@@ -27,6 +27,7 @@
       --accent-emerald: #10b981;
       --accent-amber: #f59e0b;
       --accent-violet: #8b5cf6;
+      --accent-rose: #f43f5e;
     }
 
     * { box-sizing: border-box; }
@@ -135,6 +136,30 @@
       border-radius: inherit;
       padding: 1.5px;
       background: conic-gradient(from var(--border-angle), rgba(6, 182, 212, 0.75), rgba(99, 102, 241, 0.55), rgba(16, 185, 129, 0.75), rgba(139, 92, 246, 0.65), rgba(6, 182, 212, 0.75));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      animation: spinBorder 8s linear infinite;
+    }
+
+    .hero-glass-rose {
+      position: relative;
+      background: radial-gradient(circle at 15% 20%, rgba(244, 63, 94, 0.25), transparent 45%), radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.22), transparent 50%), linear-gradient(135deg, rgba(24, 15, 32, 0.94) 0%, rgba(45, 22, 48, 0.85) 50%, rgba(136, 19, 55, 0.42) 100%);
+      backdrop-filter: blur(26px) saturate(190%);
+      -webkit-backdrop-filter: blur(26px) saturate(190%);
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      box-shadow: 0 28px 65px -12px rgba(0, 0, 0, 0.85), 0 0 42px -10px rgba(244, 63, 94, 0.32), inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+    }
+
+    .hero-glass-rose::after {
+      content: "";
+      position: absolute;
+      inset: -1.5px;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: conic-gradient(from var(--border-angle), rgba(244, 63, 94, 0.8), rgba(236, 72, 153, 0.6), rgba(245, 158, 11, 0.65), rgba(168, 85, 247, 0.65), rgba(244, 63, 94, 0.8));
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
@@ -263,7 +288,7 @@
         background: #ffffff !important;
         color: #000000 !important;
       }
-      .glass-card, .hero-glass {
+      .glass-card, .hero-glass, .hero-glass-rose {
         background: #ffffff !important;
         border: none !important;
         box-shadow: none !important;
@@ -333,7 +358,7 @@
         </button>
       </form>
       <div class="mt-6 text-[11px] text-slate-400 font-mono-num">
-        Mode Sesi Aktif • Satu Folder Bersama index.html
+        Mode Sesi Aktif • Realtime Database Sync
       </div>
     </div>
   </div>
@@ -405,6 +430,15 @@
                 </svg>
               </span>
               <span>Simpanan (Cash & Rek)</span>
+            </button>
+
+            <button type="button" data-page="tabungan_nazila" onclick="navigateTo('tabungan_nazila')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
+              <span class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </span>
+              <span>Tabungan Nazila Kartika</span>
             </button>
 
             <button type="button" data-page="mutasi_cash" onclick="navigateTo('mutasi_cash')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
@@ -493,7 +527,6 @@
         <!-- Top Bar -->
         <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-7 pb-5 border-b border-white/10">
           <div>
-            <!-- Added no-print class so these pills are strictly hidden during A4 printing -->
             <div class="no-print flex flex-wrap items-center gap-2 mb-2">
               <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium">
                 <span>Adi Muhtar System</span>
@@ -574,7 +607,8 @@
       cash: [],
       rekening: [],
       piutang: [],
-      koperasi: 0
+      koperasi: 0,
+      nazila: []
     };
 
     let currentPage = 'dashboard';
@@ -592,6 +626,7 @@
     let filterState = {
       cashSearch: '',
       rekSearch: '',
+      nazilaSearch: '',
       piutangSearch: '',
       piutangBorrower: 'ALL',
       peroranganSelected: ''
@@ -677,16 +712,22 @@
         item.saldo = cashBal;
       });
 
-      let rekBal = 1000000000; // placeholder or direct from excel
-      // Wait, let's keep the original logic for rekBal calculation:
-      // rekBal += item.masuk - item.keluar;
-      rekBal = 0;
+      let rekBal = 0;
       dbState.rekening.forEach((item, idx) => {
         item.no = idx + 1;
         item.masuk = Number(item.masuk) || 0;
         item.keluar = Number(item.keluar) || 0;
         rekBal += item.masuk - item.keluar;
         item.saldo = rekBal;
+      });
+
+      let nazilaBal = 0;
+      dbState.nazila.forEach((item, idx) => {
+        item.no = idx + 1;
+        item.masuk = Number(item.masuk) || 0;
+        item.keluar = Number(item.keluar) || 0;
+        nazilaBal += item.masuk - item.keluar;
+        item.saldo = nazilaBal;
       });
     }
 
@@ -696,8 +737,9 @@
       const saldoCash = dbState.cash.length > 0 ? dbState.cash[dbState.cash.length - 1].saldo : 0;
       const saldoRekening = dbState.rekening.length > 0 ? dbState.rekening[dbState.rekening.length - 1].saldo : 0;
       const saldoKoperasi = Number(dbState.koperasi) || 0;
-      
-      // Total Simpanan: Cash + Rekening saja (tidak termasuk saldo koperasi)
+      const saldoNazila = dbState.nazila.length > 0 ? dbState.nazila[dbState.nazila.length - 1].saldo : 0;
+
+      // Total Simpanan: Cash + Rekening saja
       const totalSimpanan = saldoCash + saldoRekening;
 
       const borrowerMap = new Map();
@@ -729,15 +771,16 @@
       const borrowerSummary = Array.from(borrowerMap.values());
       const totalPiutang = borrowerSummary.reduce((acc, b) => acc + Math.max(0, b.sisa), 0);
       const activeBorrowers = borrowerSummary.filter(b => b.sisa > 0).length;
-      
+
       // Total Aktiva = Total Simpanan (Cash + Rekening) + Saldo Koperasi + Piutang Beredar
       const totalAktiva = totalSimpanan + saldoKoperasi + totalPiutang;
-      const totalTransaksi = dbState.cash.length + dbState.rekening.length + dbState.piutang.length;
+      const totalTransaksi = dbState.cash.length + dbState.rekening.length + dbState.piutang.length + dbState.nazila.length;
 
       return {
         saldoCash,
         saldoRekening,
         saldoKoperasi,
+        saldoNazila,
         totalSimpanan,
         totalPiutang,
         totalAktiva,
@@ -778,6 +821,7 @@
     const pageMeta = {
       dashboard: { title: 'Dashboard Utama', subtitle: 'Ringkasan eksekutif saldo saat ini, komposisi aktiva, dan statistik seluruh transaksi.' },
       simpanan: { title: 'Simpanan (Cash & Rek)', subtitle: 'Rincian posisi saldo likuid pada Tabunganku Cash, Tabunganku Rekening, dan Tabungan Koperasi.' },
+      tabungan_nazila: { title: 'Tabungan Nazila Kartika', subtitle: 'Buku catatan mutasi masuk, keluar, dan saldo akhir tabungan khusus Nazila Kartika (Sheet: Tabungan_Nazila).' },
       mutasi_cash: { title: 'Mutasi Cash Global', subtitle: 'Buku besar arus kas masuk & keluar tunai fisik (diurutkan tanggal terbaru paling atas).' },
       mutasi_rekening: { title: 'Mutasi Rekening Global', subtitle: 'Buku besar transaksi rekening bank (tanggal terbaru di atas, nilai 0 disembunyikan).' },
       rekap_piutang: { title: 'Rekap Piutang', subtitle: 'Daftar ringkas posisi piutang seluruh peminjam lengkap dengan status aktif & lunas.' },
@@ -828,7 +872,7 @@
     }
 
     // =========================================================================
-    // 5. PAGE RENDERERS (8 PAGES)
+    // 5. PAGE RENDERERS (9 PAGES)
     // =========================================================================
     function renderCurrentPage() {
       const m = getMetrics();
@@ -850,6 +894,7 @@
       switch (currentPage) {
         case 'dashboard': pageHtml = getDashboardHtml(m); break;
         case 'simpanan': pageHtml = getSimpananHtml(m); break;
+        case 'tabungan_nazila': pageHtml = getTabunganNazilaHtml(m); break;
         case 'mutasi_cash': pageHtml = getMutasiCashHtml(m); break;
         case 'mutasi_rekening': pageHtml = getMutasiRekeningHtml(m); break;
         case 'rekap_piutang': pageHtml = getRekapPiutangHtml(m); break;
@@ -864,7 +909,7 @@
     }
 
     function attach3DTiltEffects() {
-      document.querySelectorAll('.glass-card, .hero-glass').forEach(card => {
+      document.querySelectorAll('.glass-card, .hero-glass, .hero-glass-rose').forEach(card => {
         if (card.dataset.tiltBound === '1') return;
         card.dataset.tiltBound = '1';
 
@@ -896,6 +941,7 @@
       const validRek = dbState.rekening.filter(r => r.masuk > 0 || r.keluar > 0);
       const lastRek = validRek[validRek.length - 1] || dbState.rekening[dbState.rekening.length - 1];
       const lastPiutang = dbState.piutang[dbState.piutang.length - 1];
+      const lastNazila = dbState.nazila[dbState.nazila.length - 1];
 
       return `
         <div class="hero-glass rounded-3xl p-6 sm:p-8 mb-7 relative overflow-hidden">
@@ -913,9 +959,9 @@
                 <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/35 text-emerald-200">
                   Total Simpanan (Cash + Rekening): <strong class="font-mono-num text-emerald-300">${formatRupiah(m.totalSimpanan)}</strong>
                 </span>
-                <span class="px-3.5 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-400/35 text-indigo-200 font-mono-num">
-                  ${m.totalTransaksi} Transaksi Lintas Sheet
-                </span>
+                <button type="button" onclick="navigateTo('tabungan_nazila')" class="px-3.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/35 text-rose-200 transition cursor-pointer">
+                  Tabungan Nazila: <strong class="font-mono-num text-rose-300">${formatRupiah(m.saldoNazila)}</strong>
+                </button>
               </div>
             </div>
 
@@ -973,26 +1019,26 @@
             <p class="text-xs text-slate-400 mt-2">Cash + Rekening saja</p>
           </div>
 
-          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-indigo-400">
+          <div onclick="navigateTo('tabungan_nazila')" class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-rose-400 cursor-pointer">
             <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Piutang Beredar</span>
-              <span class="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tabungan Nazila Kartika</span>
+              <span class="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
               </span>
             </div>
-            <div class="font-mono-num text-2xl font-extrabold text-indigo-400">${formatRupiah(m.totalPiutang)}</div>
-            <p class="text-xs text-slate-400 mt-2">${dbState.piutang.length} riwayat mutasi piutang</p>
+            <div class="font-mono-num text-2xl font-extrabold text-rose-400">${formatRupiah(m.saldoNazila)}</div>
+            <p class="text-xs text-rose-300/80 mt-2">${dbState.nazila.length} transaksi • Klik lihat detail</p>
           </div>
 
           <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-amber-400">
             <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Jumlah Peminjam / Akun</span>
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Piutang Beredar</span>
               <span class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
               </span>
             </div>
-            <div class="font-mono-num text-2xl font-extrabold text-amber-400">${m.activeBorrowers} Peminjam / 3 Akun</div>
-            <p class="text-xs text-slate-400 mt-2">Total ${m.totalBorrowers} peminjam & 3 pos simpanan</p>
+            <div class="font-mono-num text-2xl font-extrabold text-amber-400">${formatRupiah(m.totalPiutang)}</div>
+            <p class="text-xs text-slate-400 mt-2">${m.activeBorrowers} peminjam aktif (${dbState.piutang.length} mutasi)</p>
           </div>
         </div>
 
@@ -1024,7 +1070,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
               <h3 class="text-base font-bold text-white">Ringkasan Transaksi Terakhir Lintas Sumber</h3>
-              <p class="text-xs text-slate-400">Snapshot mutasi terbaru dari Mutasi Cash, Mutasi Rekening, dan Piutang Gabungan</p>
+              <p class="text-xs text-slate-400">Snapshot mutasi terbaru dari Mutasi Cash, Mutasi Rekening, Tabungan Nazila, dan Piutang</p>
             </div>
           </div>
           <div class="overflow-x-auto">
@@ -1041,8 +1087,9 @@
               <tbody class="divide-y divide-white/5 text-sm">
                 ${lastCash ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-xs font-semibold">Mutasi Cash (#${lastCash.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastCash.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastCash.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastCash.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastCash.masuk > 0 ? '+' + formatRupiah(lastCash.masuk) : '-' + formatRupiah(lastCash.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-cyan-300">${formatRupiah(lastCash.saldo)}</td></tr>` : ''}
                 ${lastRek ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-semibold">Mutasi Rekening (#${lastRek.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastRek.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastRek.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastRek.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastRek.masuk > 0 ? '+' + formatRupiah(lastRek.masuk) : '-' + formatRupiah(lastRek.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-indigo-300">${formatRupiah(lastRek.saldo)}</td></tr>` : ''}
+                ${lastNazila ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-xs font-semibold">Tabungan Nazila (#${lastNazila.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastNazila.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastNazila.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastNazila.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastNazila.masuk > 0 ? '+' + formatRupiah(lastNazila.masuk) : '-' + formatRupiah(lastNazila.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-rose-300">${formatRupiah(lastNazila.saldo)}</td></tr>` : ''}
                 ${lastPiutang ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold">Piutang (${escapeHtml(lastPiutang.nama)})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastPiutang.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastPiutang.keterangan)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastPiutang.pinjam > 0 ? 'text-amber-400' : 'text-emerald-400'}">${lastPiutang.pinjam > 0 ? 'Pinjam ' + formatRupiah(lastPiutang.pinjam) : 'Bayar ' + formatRupiah(lastPiutang.bayar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-amber-300">${formatRupiah(m.totalPiutang)}</td></tr>` : ''}
-                ${!lastCash && !lastRek && !lastPiutang ? `<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400 text-sm">Belum ada data terbaca dari <code class="text-cyan-300">database_keuangan_sync.xlsx</code>. Silakan muat file Excel atau jalankan dari folder server.</td></tr>` : ''}
+                ${!lastCash && !lastRek && !lastPiutang && !lastNazila ? `<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400 text-sm">Belum ada data terbaca dari <code class="text-cyan-300">database_keuangan_sync.xlsx</code>. Silakan muat file Excel atau jalankan dari folder server.</td></tr>` : ''}
               </tbody>
             </table>
           </div>
@@ -1133,16 +1180,17 @@
               <div class="font-mono-num text-4xl sm:text-5xl font-extrabold text-white mt-1.5">${formatRupiah(m.totalSimpanan)}</div>
               <p class="text-xs sm:text-sm text-slate-300 mt-2">Akumulasi saldo akhir dari Tabunganku Cash dan Tabunganku Rekening.</p>
             </div>
-            <div class="no-print flex gap-2">
+            <div class="no-print flex flex-wrap gap-2">
               <button type="button" onclick="navigateTo('mutasi_cash')" class="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/35 text-cyan-200 text-xs font-semibold transition">Lihat Buku Cash</button>
               <button type="button" onclick="navigateTo('mutasi_rekening')" class="px-4 py-2.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/35 text-indigo-200 text-xs font-semibold transition">Lihat Buku Rekening</button>
+              <button type="button" onclick="navigateTo('tabungan_nazila')" class="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/35 text-rose-200 text-xs font-semibold transition">Tabungan Nazila</button>
             </div>
           </div>
         </div>
 
         <div class="glass-card rounded-3xl p-6 mb-7">
           <h3 class="text-lg font-bold text-white mb-1">Rincian Pos Dana Simpanan</h3>
-          <p class="text-xs text-slate-400 mb-5">Sinkron langsung dengan sheet Mutasi_Cash_Rekening dan Simpanan_Koperasi</p>
+          <p class="text-xs text-slate-400 mb-5">Sinkron langsung dengan sheet Mutasi_Cash_Rekening, Simpanan_Koperasi, dan Tabungan_Nazila</p>
 
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -1177,12 +1225,114 @@
                   <td class="py-4 px-4 text-right font-mono-num text-slate-400">-</td>
                   <td class="py-4 px-4 text-right font-mono-num font-bold text-emerald-400 text-base">${formatRupiah(m.saldoKoperasi)}</td>
                 </tr>
+                <tr onclick="navigateTo('tabungan_nazila')" class="hover:bg-white/[0.04] cursor-pointer">
+                  <td class="py-4 px-4 font-mono-num text-slate-400">4</td>
+                  <td class="py-4 px-4 font-bold text-rose-300 flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-rose-400"></span>Tabungan Nazila Kartika (Pos Terpisah)</td>
+                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Tabungan_Nazila</code></td>
+                  <td class="py-4 px-4 text-right font-mono-num text-slate-400">-</td>
+                  <td class="py-4 px-4 text-right font-mono-num font-bold text-rose-400 text-base">${formatRupiah(m.saldoNazila)}</td>
+                </tr>
               </tbody>
               <tfoot>
                 <tr class="bg-emerald-500/10 border-t-2 border-emerald-400/40">
                   <td colspan="3" class="py-4 px-4 font-extrabold text-white text-sm uppercase tracking-wider">Total Simpanan (Cash + Rekening)</td>
                   <td class="py-4 px-4 text-right font-mono-num font-bold text-emerald-300">100.0%</td>
                   <td class="py-4 px-4 text-right font-mono-num font-extrabold text-emerald-400 text-lg">${formatRupiah(m.totalSimpanan)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- PAGE NEW: TABUNGAN NAZILA KARTIKA ---
+    function getTabunganNazilaHtml(m) {
+      const totalMasuk = dbState.nazila.reduce((s, r) => s + r.masuk, 0);
+      const totalKeluar = dbState.nazila.reduce((s, r) => s + r.keluar, 0);
+      const q = filterState.nazilaSearch.toLowerCase();
+
+      const sortedNazila = [...dbState.nazila].sort((a, b) => {
+        const diff = getDateTimestamp(b.tgl) - getDateTimestamp(a.tgl);
+        return diff !== 0 ? diff : b.no - a.no;
+      });
+
+      const filtered = sortedNazila.filter(r =>
+        r.rincian.toLowerCase().includes(q) ||
+        r.tgl.toLowerCase().includes(q) ||
+        String(r.no).includes(q)
+      );
+
+      return `
+        <div class="hero-glass-rose rounded-3xl p-6 sm:p-8 mb-7">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold mb-2.5">
+                <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                SHEET: Tabungan_Nazila • REALTIME SYNC
+              </div>
+              <div class="text-xs sm:text-sm uppercase tracking-wider text-slate-300 font-semibold">Saldo Akhir Tabungan Nazila Kartika</div>
+              <div class="font-mono-num text-4xl sm:text-5xl font-extrabold text-white mt-1.5 drop-shadow-[0_6px_24px_rgba(244,63,94,0.35)]">
+                ${formatRupiah(m.saldoNazila)}
+              </div>
+              <p class="text-xs sm:text-sm text-rose-200/80 mt-2">Total ${dbState.nazila.length} riwayat transaksi tabungan tercatat langsung dari database Excel.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 sm:min-w-[300px]">
+              <div class="p-4 rounded-2xl bg-slate-950/65 border border-emerald-400/25">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Total Masuk</div>
+                <div class="font-mono-num text-base sm:text-lg font-bold text-emerald-400 mt-1">${formatRupiah(totalMasuk)}</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-slate-950/65 border border-rose-400/25">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold">Total Keluar</div>
+                <div class="font-mono-num text-base sm:text-lg font-bold text-rose-400 mt-1">${formatRupiah(totalKeluar)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6">
+          <div class="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+            <div>
+              <h3 class="text-base font-bold text-white">Buku Mutasi Tabungan Nazila Kartika (${filtered.length} baris • Terbaru Paling Atas)</h3>
+              <p class="text-xs text-slate-400">Menampilkan rincian pemasukan, pengambilan, dan sisa saldo berjalan secara realtime</p>
+            </div>
+            <input type="text" value="${escapeHtml(filterState.nazilaSearch)}" oninput="filterState.nazilaSearch = this.value; renderCurrentPage();" placeholder="Cari tanggal atau rincian tabungan..." class="glass-input w-full sm:w-72 px-4 py-2 rounded-xl text-sm" />
+          </div>
+
+          <div class="overflow-x-auto max-h-[580px]">
+            <table class="w-full text-left border-collapse">
+              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
+                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                  <th class="py-3.5 px-3">No</th>
+                  <th class="py-3.5 px-3">Tanggal</th>
+                  <th class="py-3.5 px-3">Rincian Transaksi</th>
+                  <th class="py-3.5 px-3 text-right">Jumlah Masuk</th>
+                  <th class="py-3.5 px-3 text-right">Jumlah Keluar</th>
+                  <th class="py-3.5 px-3 text-right">Saldo</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-sm">
+                ${filtered.length > 0 ? filtered.map(r => `
+                  <tr class="hover:bg-white/[0.03] transition">
+                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
+                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
+                    <td class="py-3 px-3 text-white font-medium">${escapeHtml(r.rincian)}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.masuk > 0 ? formatRupiah(r.masuk) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num text-rose-400 whitespace-nowrap">${r.keluar > 0 ? formatRupiah(r.keluar) : '-'}</td>
+                    <td class="py-3 px-3 text-right font-mono-num font-bold text-rose-300 whitespace-nowrap">${formatRupiah(r.saldo)}</td>
+                  </tr>
+                `).join('') : `
+                  <tr>
+                    <td colspan="6" class="py-8 px-4 text-center text-slate-400 text-sm">Belum ada data pada sheet <code class="text-rose-300">Tabungan_Nazila</code> atau tidak ditemukan hasil pencarian.</td>
+                  </tr>
+                `}
+              </tbody>
+              <tfoot>
+                <tr class="bg-rose-500/10 border-t-2 border-rose-400/40 font-bold">
+                  <td colspan="3" class="py-4 px-3 text-white uppercase text-xs tracking-wider">Total Akumulasi Tabungan Nazila Kartika</td>
+                  <td class="py-4 px-3 text-right font-mono-num text-emerald-400">${formatRupiah(totalMasuk)}</td>
+                  <td class="py-4 px-3 text-right font-mono-num text-rose-400">${formatRupiah(totalKeluar)}</td>
+                  <td class="py-4 px-3 text-right font-mono-num text-rose-300 text-base">${formatRupiah(m.saldoNazila)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -1676,6 +1826,7 @@
                 <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabunganku Cash (Tunai)</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoCash)}</span></div>
                 <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabunganku Rekening (Bank)</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoRekening)}</span></div>
                 <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabungan Koperasi</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoKoperasi)}</span></div>
+                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-rose-300">Tabungan Nazila Kartika (Terpisah)</span><span class="font-mono-num font-semibold text-rose-300">${formatRupiah(m.saldoNazila)}</span></div>
                 <div class="flex justify-between pt-2 text-base font-extrabold text-emerald-400"><span>Total Simpanan (Cash + Rekening)</span><span class="font-mono-num">${formatRupiah(m.totalSimpanan)}</span></div>
               </div>
             </div>
@@ -1739,6 +1890,7 @@
       let parsedRek = [];
       let parsedPiutang = [];
       let parsedKoperasi = null;
+      let parsedNazila = [];
 
       const mutasiName = workbook.SheetNames.find(n => n.toLowerCase().includes('mutasi'));
       if (mutasiName) {
@@ -1821,7 +1973,37 @@
         }
       }
 
-      return { cash: parsedCash, rekening: parsedRek, piutang: parsedPiutang, koperasi: parsedKoperasi };
+      // Parse Tabungan_Nazila sheet
+      const nazilaName = workbook.SheetNames.find(n => n.toLowerCase().includes('nazila'));
+      if (nazilaName) {
+        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[nazilaName], { header: 1, defval: '' });
+        for (let r = 3; r < matrix.length; r++) {
+          const row = matrix[r] || [];
+          const col0 = row[0];
+          const isCol0Index = (typeof col0 === 'number' && col0 < 10000) || (typeof col0 === 'string' && /^\d+$/.test(col0.trim()));
+          const nTgl = isCol0Index ? row[1] : row[0];
+          const nRincian = String(isCol0Index ? row[2] : row[1] || '').trim();
+          const nMasuk = parseNumericCell(isCol0Index ? row[3] : row[2]);
+          const nKeluar = parseNumericCell(isCol0Index ? row[4] : row[3]);
+
+          if (
+            nRincian &&
+            !['rincian', 'total', 'saldo', 'no', 'tanggal'].includes(nRincian.toLowerCase()) &&
+            (nMasuk > 0 || nKeluar > 0)
+          ) {
+            parsedNazila.push({
+              no: parsedNazila.length + 1,
+              tgl: normalizeExcelDate(nTgl),
+              rincian: nRincian,
+              masuk: nMasuk,
+              keluar: nKeluar,
+              saldo: 0
+            });
+          }
+        }
+      }
+
+      return { cash: parsedCash, rekening: parsedRek, piutang: parsedPiutang, koperasi: parsedKoperasi, nazila: parsedNazila };
     }
 
     function applyParsedWorkbook(workbook, sourceName, modeLabel, silent = false) {
@@ -1832,6 +2014,7 @@
       if (parsed.rekening.length > 0) { dbState.rekening = parsed.rekening; applied = true; }
       if (parsed.piutang.length > 0) { dbState.piutang = parsed.piutang; applied = true; }
       if (parsed.koperasi !== null && !isNaN(parsed.koperasi)) { dbState.koperasi = parsed.koperasi; applied = true; }
+      if (parsed.nazila.length > 0) { dbState.nazila = parsed.nazila; applied = true; }
 
       if (applied) {
         liveSyncState.isLoaded = true;
@@ -1841,7 +2024,8 @@
         if (guideBanner) guideBanner.classList.add('hidden');
         updateSyncIndicatorUI(modeLabel, true);
         renderCurrentPage();
-        if (!silent) showToast(`Data sinkron dari ${sourceName} (${dbState.cash.length + dbState.rekening.length + dbState.piutang.length} entri)!`);
+        const totalRows = dbState.cash.length + dbState.rekening.length + dbState.piutang.length + dbState.nazila.length;
+        if (!silent) showToast(`Data sinkron dari ${sourceName} (${totalRows} entri)!`);
       }
       return applied;
     }
@@ -2014,9 +2198,18 @@
           ...dbState.cash.map(r => ({ No: r.no, Jenis_Akun: 'Cash', Tanggal: r.tgl, Rincian: r.rincian, Masuk: r.masuk, Keluar: r.keluar, Saldo: r.saldo })),
           ...dbState.rekening.map(r => ({ No: r.no, Jenis_Akun: 'Rekening', Tanggal: r.tgl, Rincian: r.rincian, Masuk: r.masuk, Keluar: r.keluar, Saldo: r.saldo }))
         ];
+        const nazilaRows = dbState.nazila.map(r => ({
+          No: r.no,
+          Tanggal: r.tgl,
+          Rincian: r.rincian,
+          'Jumlah Masuk': r.masuk,
+          'Jumlah Keluar': r.keluar,
+          Saldo: r.saldo
+        }));
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mutasiRows), 'Mutasi_Cash_Rekening');
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(m.detailedPiutang), 'Piutang_Gabungan');
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{ Pos_Simpanan: 'Tabungan Koperasi', Saldo: m.saldoKoperasi }]), 'Simpanan_Koperasi');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(nazilaRows), 'Tabungan_Nazila');
         XLSX.writeFile(wb, EXCEL_FILENAME);
         showToast('File ' + EXCEL_FILENAME + ' berhasil diunduh!');
       } catch (err) { showToast('Gagal mendownload Excel.', 'error'); }
