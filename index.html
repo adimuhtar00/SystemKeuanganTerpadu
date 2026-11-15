@@ -3,22 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistem Keuangan Terpadu — Bang Adi Muhtar</title>
-  <!-- Library SheetJS untuk Ekstraksi Sheet Real-Time -->
+  <title>Sistem Keuangan Terpadu 3D — Bang Adi Muhtar</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
-      --bg-app: #090d16;
-      --bg-card: rgba(30, 41, 59, 0.7);
-      --bg-card-solid: #1e293b;
-      --border-color: rgba(245, 158, 11, 0.25);
+      --bg-deep: #050811;
+      --bg-surface: rgba(17, 25, 45, 0.72);
+      --border-3d: rgba(245, 158, 11, 0.35);
+      --gold: #f59e0b;
+      --gold-light: #fde047;
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --rose: #f43f5e;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --gold: #f59e0b;
-      --gold-glow: rgba(245, 158, 11, 0.35);
-      --green: #10b981;
-      --red: #ef4444;
-      --blue: #3b82f6;
     }
 
     * {
@@ -30,274 +28,358 @@
 
     html, body {
       width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at top, #1a233a 0%, var(--bg-app) 100%);
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 10%, #172554 0%, #090d16 45%, #03050a 100%);
       color: var(--text-main);
       overflow-x: hidden;
+      perspective: 1400px;
     }
 
-    /* Loading Screen Spektakuler */
+    /* Latar Belakang Partikel Cahaya 3D */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.45;
+      animation: floatOrb 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 380px; height: 380px; background: #d97706; top: -80px; left: -60px; }
+    .orb-2 { width: 420px; height: 420px; background: #0284c7; bottom: -100px; right: -80px; animation-delay: -5s; }
+
+    @keyframes floatOrb {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(40px, 30px, 50px) scale(1.1); }
+    }
+
+    /* Layar Loading Fullscreen 3D */
     #loading-screen {
       position: fixed;
       inset: 0;
-      background: #060911;
+      background: #04070f;
       z-index: 9999;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      transition: opacity 0.5s ease;
+      gap: 18px;
+      transition: opacity 0.45s ease;
     }
 
-    .spectacular-loader {
-      width: 64px;
-      height: 64px;
-      border: 4px solid rgba(245, 158, 11, 0.1);
-      border-top-color: var(--gold);
-      border-right-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.9s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-      box-shadow: 0 0 25px var(--gold-glow);
+    .cube-3d {
+      width: 54px;
+      height: 54px;
+      border: 3px solid var(--gold);
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.6), inset 0 0 15px rgba(245, 158, 11, 0.4);
+      animation: spin3D 1.8s infinite ease-in-out;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    @keyframes spin3D {
+      0% { transform: perspective(200px) rotateX(0deg) rotateY(0deg); }
+      50% { transform: perspective(200px) rotateX(180deg) rotateY(0deg); }
+      100% { transform: perspective(200px) rotateX(180deg) rotateY(180deg); }
     }
 
-    .loader-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: var(--gold);
-      text-transform: uppercase;
-    }
-
-    /* Container Utama */
-    .app-container {
-      max-width: 1500px;
+    /* Layout Utama */
+    .wrapper {
+      position: relative;
+      z-index: 2;
+      max-width: 1520px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 18px 22px;
     }
 
-    /* Header Bar */
-    .top-bar {
+    /* Header 3D Glass */
+    .header-3d {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
+      gap: 14px;
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.9));
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-3d);
+      border-top: 1px solid rgba(253, 224, 71, 0.5);
+      border-radius: 16px;
       padding: 16px 24px;
-      border-radius: 14px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      margin-bottom: 18px;
     }
 
-    .brand-title h1 {
-      font-size: 1.5rem;
+    .title-area h1 {
+      font-size: 1.45rem;
       font-weight: 800;
-      letter-spacing: 0.8px;
-      background: linear-gradient(135deg, #fef08a 0%, var(--gold) 100%);
+      letter-spacing: 0.7px;
+      background: linear-gradient(to right, #fef08a, #f59e0b, #fbbf24);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 18px rgba(245, 158, 11, 0.25);
     }
 
     .screen-subtitle {
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       color: var(--text-muted);
       margin-top: 3px;
     }
 
-    .controls {
+    .action-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .btn-3d {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      color: var(--text-main);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 8px 15px;
+      border-radius: 10px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #070b14, 0 8px 16px rgba(0, 0, 0, 0.45);
+      transition: all 0.18s ease;
+    }
+
+    .btn-3d:hover {
+      transform: translateY(-2px);
+      border-color: var(--gold-light);
+      color: var(--gold-light);
+      box-shadow: 0 7px 0 #070b14, 0 12px 22px rgba(245, 158, 11, 0.25);
+    }
+
+    .btn-3d:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #070b14;
+    }
+
+    .btn-gold {
+      background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+      color: #090d16;
+      border-color: #fef08a;
+      font-weight: 800;
+      box-shadow: 0 5px 0 #78350f, 0 8px 20px rgba(245, 158, 11, 0.35);
+    }
+
+    .btn-gold:hover {
+      color: #000;
+      box-shadow: 0 7px 0 #78350f, 0 12px 26px rgba(245, 158, 11, 0.5);
+    }
+
+    /* Navigasi Multi-Halaman 3D */
+    .nav-tabs-3d {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      align-items: center;
+      margin-bottom: 18px;
+      padding: 8px;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
-    .btn {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 9px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    .btn:hover {
-      border-color: var(--gold);
-      color: var(--gold);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px var(--gold-glow);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #000;
-      border-color: #f59e0b;
+    .tab-btn {
+      flex: 1;
+      min-width: 150px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
       font-weight: 700;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-align: center;
     }
 
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #fbbf24, #b45309);
-      color: #000;
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
     }
 
-    /* Status Strip & Filters */
-    .status-strip {
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.12));
+      color: var(--gold-light);
+      border: 1px solid rgba(245, 158, 11, 0.55);
+      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Status Bar Sinkronisasi */
+    .sync-bar {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      background: var(--bg-card);
-      backdrop-filter: blur(10px);
-      padding: 12px 20px;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 10px 16px;
       border-radius: 10px;
-      border: 1px solid var(--border-color);
-      margin-bottom: 20px;
-      gap: 12px;
-      font-size: 0.85rem;
+      margin-bottom: 18px;
+      font-size: 0.83rem;
     }
 
-    .badge-live {
-      display: inline-flex;
+    .live-indicator {
+      display: flex;
       align-items: center;
       gap: 8px;
-      color: var(--green);
-      font-weight: 600;
+      color: var(--emerald);
+      font-weight: 700;
     }
 
-    .dot-live {
+    .pulse-dot {
       width: 9px;
       height: 9px;
-      background: var(--green);
+      background: var(--emerald);
       border-radius: 50%;
-      box-shadow: 0 0 10px var(--green);
-      animation: pulse 1.5s infinite;
+      box-shadow: 0 0 10px var(--emerald);
+      animation: pulseRing 1.5s infinite;
     }
 
-    @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    @keyframes pulseRing {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { box-shadow: 0 0 0 9px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
-    select, input[type="text"] {
-      background: #0f172a;
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 7px 12px;
-      border-radius: 7px;
-      font-size: 0.85rem;
-      outline: none;
-      transition: border 0.2s;
+    /* Halaman / Section Views */
+    .page-section {
+      display: none;
+      animation: pageEnter3D 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    select:focus, input[type="text"]:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 8px var(--gold-glow);
+    .page-section.active {
+      display: block;
     }
 
-    /* KPI Grid Spektakuler */
-    .kpi-grid {
+    @keyframes pageEnter3D {
+      from {
+        opacity: 0;
+        transform: perspective(1000px) rotateX(-4deg) translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: perspective(1000px) rotateX(0deg) translateY(0);
+      }
+    }
+
+    /* Kartu KPI 3D Interaktif */
+    .kpi-grid-3d {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 16px;
       margin-bottom: 20px;
     }
 
-    .kpi-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px 20px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      transition: transform 0.25s ease;
+    .card-3d {
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.92));
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.55);
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
-    .kpi-card:hover {
-      transform: translateY(-3px);
+    .card-3d:hover {
       border-color: var(--gold);
+      box-shadow: 0 22px 42px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.2);
     }
 
-    .kpi-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 4px; height: 100%;
-      background: var(--gold);
-    }
-
-    .kpi-card.green::after { background: var(--green); }
-    .kpi-card.red::after { background: var(--red); }
-    .kpi-card.blue::after { background: var(--blue); }
-
-    .kpi-label {
+    .kpi-title {
       font-size: 0.78rem;
-      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      font-weight: 600;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      font-weight: 700;
+      transform: translateZ(15px);
     }
 
-    .kpi-value {
-      font-size: 1.45rem;
+    .kpi-num {
+      font-size: 1.5rem;
       font-weight: 800;
       margin-top: 6px;
+      transform: translateZ(25px);
+    }
+
+    .c-gold { color: var(--gold-light); }
+    .c-green { color: var(--emerald); }
+    .c-red { color: var(--rose); }
+    .c-cyan { color: var(--cyan); }
+
+    /* Panel Tabel 3D */
+    .panel-3d {
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
+      margin-bottom: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .panel-header h3 {
+      font-size: 1.05rem;
+      color: var(--gold-light);
       letter-spacing: 0.4px;
     }
 
-    .text-green { color: var(--green); }
-    .text-red { color: var(--red); }
-    .text-gold { color: var(--gold); }
-    .text-blue { color: var(--blue); }
+    input[type="text"], select {
+      background: #070b14;
+      color: var(--text-main);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      outline: none;
+    }
 
-    /* Area Tabel Spektakuler */
-    .table-wrapper {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
+    .table-scroll {
       overflow-x: auto;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
     }
 
     th, td {
-      padding: 11px 14px;
+      padding: 10px 12px;
       text-align: left;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     th {
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(9, 13, 22, 0.95);
       color: var(--gold);
       font-weight: 700;
-      letter-spacing: 0.4px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      letter-spacing: 0.5px;
     }
 
     tr:hover td {
-      background: rgba(245, 158, 11, 0.04);
+      background: rgba(245, 158, 11, 0.06);
     }
 
     .num {
@@ -305,130 +387,135 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Print Header (Tersembunyi di Layar) */
-    .print-header {
+    /* Kop Print (Sembunyi di Layar) */
+    .print-only-header {
       display: none;
     }
 
     /* =========================================================
-       ATURAN CETAK / PRINT PRESISI, PADAT, RAPI (TANPA HEADER ATAS)
+       PRINT MODE: PADAT, RAPAT, PRESISI, TANPA HEADER DESKRIPSI ATAS
        ========================================================= */
     @media print {
       @page {
         size: A4 portrait;
-        margin: 8mm;
+        margin: 7mm;
       }
 
       html, body {
         background: #ffffff !important;
         color: #000000 !important;
+        min-height: auto !important;
         height: auto !important;
-        overflow: visible !important;
-        font-size: 8.5pt !important;
+        perspective: none !important;
       }
 
+      .bg-orb,
       #loading-screen,
-      .top-bar,
+      .header-3d,
       .screen-subtitle,
-      .controls,
-      .status-strip,
+      .nav-tabs-3d,
+      .sync-bar,
       .no-print {
         display: none !important;
       }
 
-      .app-container {
+      .wrapper {
         max-width: 100% !important;
-        width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
       }
 
-      .print-header {
+      .print-only-header {
         display: block !important;
         text-align: center;
         border-bottom: 2pt solid #000000;
-        padding-bottom: 6pt;
-        margin-bottom: 8pt;
+        padding-bottom: 5pt;
+        margin-bottom: 7pt;
       }
 
-      .print-header h2 {
+      .print-only-header h2 {
         font-size: 13pt !important;
         font-weight: 900 !important;
         color: #000000 !important;
         margin: 0 0 2pt 0 !important;
-        text-transform: uppercase;
       }
 
-      .print-header p {
+      .print-only-header p {
         font-size: 8pt !important;
-        color: #222222 !important;
+        color: #111111 !important;
         margin: 0 !important;
       }
 
-      .kpi-grid {
+      /* Tampilkan halaman yang sedang aktif saja agar tidak boros kertas */
+      .page-section {
+        display: none !important;
+      }
+      .page-section.active {
+        display: block !important;
+      }
+
+      .kpi-grid-3d {
         display: grid !important;
         grid-template-columns: repeat(4, 1fr) !important;
-        gap: 6pt !important;
-        margin-bottom: 8pt !important;
+        gap: 5pt !important;
+        margin-bottom: 7pt !important;
       }
 
-      .kpi-card {
+      .card-3d {
         background: #ffffff !important;
         border: 0.8pt solid #333333 !important;
-        border-radius: 3pt !important;
-        padding: 6pt 8pt !important;
+        border-radius: 2pt !important;
+        padding: 5pt 7pt !important;
         box-shadow: none !important;
-        break-inside: avoid;
+        transform: none !important;
       }
 
-      .kpi-card::after { display: none !important; }
-
-      .kpi-label {
-        font-size: 7pt !important;
+      .kpi-title {
+        font-size: 6.8pt !important;
         color: #333333 !important;
-        font-weight: 700 !important;
+        transform: none !important;
       }
 
-      .kpi-value {
-        font-size: 10pt !important;
+      .kpi-num {
+        font-size: 9.5pt !important;
         color: #000000 !important;
         margin-top: 2pt !important;
+        transform: none !important;
       }
 
-      .table-wrapper {
+      .panel-3d {
         background: #ffffff !important;
         border: none !important;
         box-shadow: none !important;
-        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .panel-header h3 {
+        font-size: 9.5pt !important;
+        color: #000000 !important;
       }
 
       table {
         width: 100% !important;
+        font-size: 7.6pt !important;
         border-collapse: collapse !important;
-        font-size: 7.8pt !important;
       }
 
       th {
-        background: #e2e8f0 !important;
+        background: #e5e7eb !important;
         color: #000000 !important;
-        border: 0.7pt solid #333333 !important;
-        padding: 4pt 5pt !important;
-        font-weight: 700 !important;
-        position: static !important;
+        border: 0.6pt solid #333333 !important;
+        padding: 3pt 4pt !important;
       }
 
       td {
         color: #000000 !important;
         border: 0.5pt solid #666666 !important;
-        padding: 3pt 5pt !important;
+        padding: 2.3pt 4pt !important;
       }
 
-      tr {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      .text-green, .text-red, .text-gold, .text-blue {
+      .c-gold, .c-green, .c-red, .c-cyan {
         color: #000000 !important;
       }
     }
@@ -436,355 +523,522 @@
 </head>
 <body>
 
-  <!-- Layar Loading Spektakuler -->
+  <!-- Efek Bola Cahaya 3D -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <!-- Layar Loading Fullscreen -->
   <div id="loading-screen">
-    <div class="spectacular-loader"></div>
-    <div class="loader-title">MEMUAT SISTEM KEUANGAN TERPADU...</div>
-    <div style="font-size:0.82rem; color:var(--text-muted);">Menghubungkan Database Real-Time & Enkripsi Memori</div>
+    <div class="cube-3d"></div>
+    <div style="font-weight:800; color:#fbbf24; letter-spacing:1.2px;">MEMUAT DATABASE 3D REAL-TIME...</div>
+    <div style="font-size:0.82rem; color:#94a3b8;">Menyinkronkan seluruh sheet dari database.xlsx</div>
   </div>
 
-  <div class="app-container">
-    <!-- KOP KHUSUS CETAK (Tanpa Deskripsi Atas) -->
-    <div class="print-header">
+  <div class="wrapper">
+    <!-- Kop Cetak Presisi (Tanpa Kalimat Deskripsi Atas) -->
+    <div class="print-only-header">
       <h2>SISTEM KEUANGAN TERPADU — BANG ADI MUHTAR</h2>
-      <p><strong>Laporan:</strong> <span id="print-sheet-label">Semua Data Terpadu</span> &nbsp;|&nbsp; <strong>Tanggal Cetak:</strong> <span id="print-date"></span></p>
+      <p><strong>Halaman Laporan:</strong> <span id="print-page-name">Dashboard Utama</span> &nbsp;|&nbsp; <strong>Tanggal Cetak:</strong> <span id="print-date"></span></p>
     </div>
 
-    <!-- Header Layar -->
-    <div class="top-bar">
-      <div class="brand-title">
+    <!-- Header Utama 3D -->
+    <header class="header-3d">
+      <div class="title-area">
         <h1>SISTEM KEUANGAN TERPADU — BANG ADI MUHTAR</h1>
         <div class="screen-subtitle">Ringkasan eksekutif saldo saat ini, komposisi aktiva, dan statistik seluruh transaksi.</div>
       </div>
-      <div class="controls">
-        <input type="file" id="manual-file" accept=".xlsx,.xls,.csv" style="display:none" />
-        <button class="btn" onclick="document.getElementById('manual-file').click()">📂 Muat File Excel</button>
-        <button class="btn" onclick="syncDatabase()">🔄 Sinkron Ulang</button>
-        <button class="btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
-        <button class="btn btn-primary" onclick="window.print()">🖨️ Cetak Presisi</button>
+      <div class="action-group">
+        <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" style="display:none" />
+        <button class="btn-3d" onclick="document.getElementById('excel-upload').click()">📂 Muat Excel Manual</button>
+        <button class="btn-3d" onclick="loadRealtimeDatabase()">🔄 Sync Database</button>
+        <button class="btn-3d" onclick="toggleFullScreen()">⛶ Fullscreen</button>
+        <button class="btn-3d btn-gold" onclick="window.print()">🖨️ Print Presisi</button>
+      </div>
+    </header>
+
+    <!-- Navigasi Multi-Halaman Lengkap (Semua Halaman Awal Tetap Utuh) -->
+    <nav class="nav-tabs-3d">
+      <button class="tab-btn active" onclick="switchPage('page-dashboard', 'Dashboard Utama', this)">📊 Dashboard Utama</button>
+      <button class="tab-btn" onclick="switchPage('page-nazila', 'Tabungan Nazila', this)">💎 Tabungan Nazila</button>
+      <button class="tab-btn" onclick="switchPage('page-transaksi', 'Kas & Semua Transaksi', this)">💸 Kas & Transaksi</button>
+      <button class="tab-btn" onclick="switchPage('page-aktiva', 'Komposisi Aktiva & Aset', this)">🏛️ Aktiva & Aset</button>
+      <button class="tab-btn" onclick="switchPage('page-sheets', 'Eksplorasi Per Sheet', this)">📑 Semua Sheet Excel</button>
+    </nav>
+
+    <!-- Status Koneksi Real-Time -->
+    <div class="sync-bar">
+      <div class="live-indicator">
+        <span class="pulse-dot"></span>
+        <span id="db-status-text">Menghubungkan ke database.xlsx secara real-time...</span>
+      </div>
+      <div style="color:var(--text-muted); font-size:0.8rem;" id="db-meta-info">
+        Sumber: database.xlsx (100% Eksternal)
       </div>
     </div>
 
-    <!-- Bar Status & Filter -->
-    <div class="status-strip">
-      <div class="badge-live">
-        <span class="dot-live"></span>
-        <span id="sync-status">Sistem aktif real-time siap digunakan.</span>
+    <!-- =========================================================
+         HALAMAN 1: DASHBOARD UTAMA
+         ========================================================= -->
+    <section id="page-dashboard" class="page-section active">
+      <div class="kpi-grid-3d">
+        <div class="card-3d tilt-card">
+          <div class="kpi-title">Total Saldo Bersih Keseluruhan</div>
+          <div class="kpi-num c-gold" id="dash-net">Rp 0</div>
+        </div>
+        <div class="card-3d tilt-card">
+          <div class="kpi-title">Total Tabungan Nazila</div>
+          <div class="kpi-num c-cyan" id="dash-nazila">Rp 0</div>
+        </div>
+        <div class="card-3d tilt-card">
+          <div class="kpi-title">Total Pemasukan Terdata</div>
+          <div class="kpi-num c-green" id="dash-in">Rp 0</div>
+        </div>
+        <div class="card-3d tilt-card">
+          <div class="kpi-title">Total Pengeluaran Terdata</div>
+          <div class="kpi-num c-red" id="dash-out">Rp 0</div>
+        </div>
       </div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <label for="sheet-filter" style="color:var(--text-muted);">Sumber Sheet:</label>
-        <select id="sheet-filter" onchange="renderDashboard()">
-          <option value="ALL">Semua Sheet (Gabungan Real-Time)</option>
-        </select>
-        <input type="text" id="search-input" placeholder="Cari keterangan / kategori..." oninput="renderDashboard()" />
-      </div>
-    </div>
 
-    <!-- Ringkasan KPI Spektakuler -->
-    <div class="kpi-grid">
-      <div class="kpi-card green">
-        <div class="kpi-label">Total Pemasukan / Masuk</div>
-        <div class="kpi-value text-green" id="kpi-in">Rp 0</div>
+      <div class="panel-3d">
+        <div class="panel-header">
+          <h3>📌 Ringkasan Saldo Per Sheet / Pos Keuangan (Real-Time)</h3>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:45px;">No</th>
+                <th>Nama Sheet / Pos</th>
+                <th class="num">Jumlah Baris Data</th>
+                <th class="num">Total Masuk (Rp)</th>
+                <th class="num">Total Keluar (Rp)</th>
+                <th class="num">Saldo Akhir Pos (Rp)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-ringkasan-sheet"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="kpi-card red">
-        <div class="kpi-label">Total Pengeluaran / Keluar</div>
-        <div class="kpi-value text-red" id="kpi-out">Rp 0</div>
-      </div>
-      <div class="kpi-card blue">
-        <div class="kpi-label">Total Tabungan & Aktiva</div>
-        <div class="kpi-value text-blue" id="kpi-saving">Rp 0</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Saldo Bersih Keseluruhan</div>
-        <div class="kpi-value text-gold" id="kpi-net">Rp 0</div>
-      </div>
-    </div>
+    </section>
 
-    <!-- Tabel Data Spektakuler -->
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:45px;">No</th>
-            <th>Sumber Sheet</th>
-            <th>Tanggal</th>
-            <th>Kategori / Akun</th>
-            <th>Keterangan / Uraian</th>
-            <th class="num">Masuk (Rp)</th>
-            <th class="num">Keluar (Rp)</th>
-            <th class="num">Saldo / Nominal (Rp)</th>
-          </tr>
-        </thead>
-        <tbody id="table-body">
-          <tr>
-            <td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">
-              Memuat database secara real-time...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- =========================================================
+         HALAMAN 2: TABUNGAN NAZILA
+         ========================================================= -->
+    <section id="page-nazila" class="page-section">
+      <div class="kpi-grid-3d">
+        <div class="card-3d tilt-card">
+          <div class="kpi-title">Saldo Terkini Tabungan Nazila</div>
+          <div class="kpi-num c-cyan" id="nazila-saldo">Rp 0</div>
+        </div>
+        <div class="card-3d tilt-card">
+          <div class="kpi-title">Total Setoran Masuk</div>
+          <div class="kpi-num c-green" id="nazila-in">Rp 0</div>
+        </div>
+        <div class="card-3d tilt-card">
+          <div class="kpi-title">Total Penarikan</div>
+          <div class="kpi-num c-red" id="nazila-out">Rp 0</div>
+        </div>
+      </div>
+
+      <div class="panel-3d">
+        <div class="panel-header">
+          <h3>💎 Rincian Mutasi Tabungan Nazila (Real-Time)</h3>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:45px;">No</th>
+                <th>Tanggal</th>
+                <th>Kategori / Akun</th>
+                <th>Keterangan</th>
+                <th class="num">Setoran (Rp)</th>
+                <th class="num">Penarikan (Rp)</th>
+                <th class="num">Nominal / Saldo (Rp)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-nazila"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         HALAMAN 3: KAS & SEMUA TRANSAKSI
+         ========================================================= -->
+    <section id="page-transaksi" class="page-section">
+      <div class="panel-3d">
+        <div class="panel-header">
+          <h3>💸 Seluruh Riwayat Transaksi Gabungan</h3>
+          <input type="text" id="search-all" placeholder="Cari transaksi / keterangan..." oninput="renderAllTables()" />
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:45px;">No</th>
+                <th>Sumber Sheet</th>
+                <th>Tanggal</th>
+                <th>Kategori</th>
+                <th>Keterangan</th>
+                <th class="num">Masuk (Rp)</th>
+                <th class="num">Keluar (Rp)</th>
+                <th class="num">Nilai / Saldo (Rp)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-all"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         HALAMAN 4: KOMPOSISI AKTIVA & ASET
+         ========================================================= -->
+    <section id="page-aktiva" class="page-section">
+      <div class="panel-3d">
+        <div class="panel-header">
+          <h3>🏛️ Data Aktiva, Aset & Simpanan Terpadu</h3>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:45px;">No</th>
+                <th>Sumber Sheet</th>
+                <th>Nama Aktiva / Kategori</th>
+                <th>Keterangan / Detail</th>
+                <th class="num">Nilai Aktiva (Rp)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-aktiva"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         HALAMAN 5: EKSPLORASI PER SHEET EXCEL
+         ========================================================= -->
+    <section id="page-sheets" class="page-section">
+      <div class="panel-3d">
+        <div class="panel-header">
+          <h3>📑 Tampilan Mentah Real-Time Per Sheet Excel</h3>
+          <select id="sheet-selector" onchange="renderSingleSheet()"></select>
+        </div>
+        <div class="table-scroll">
+          <table id="raw-sheet-table">
+            <thead id="raw-thead"></thead>
+            <tbody id="raw-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script>
-    let ALL_RECORDS = [];
+    // TIDAK ADA DATA HARDCODE DI DALAM BODY - 100% DARI FILE DATABASE
+    let WORKBOOK_DATA = {};
+    let ALL_PARSED_ROWS = [];
 
-    // Auto Fullscreen Saat Dimuat & Klik Pertama
-    function enterFullscreen() {
+    // 1. Auto Fullscreen
+    function requestFull() {
       const el = document.documentElement;
       if (!document.fullscreenElement) {
-        if (el.requestFullscreen) {
-          el.requestFullscreen().catch(() => {});
-        } else if (el.webkitRequestFullscreen) {
-          el.webkitRequestFullscreen();
-        }
+        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
       }
     }
 
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        enterFullscreen();
-      } else if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) requestFull();
+      else if (document.exitFullscreen) document.exitFullscreen();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      enterFullscreen();
-      updatePrintDate();
-      syncDatabase();
+      requestFull();
+      init3DTiltCards();
+      document.getElementById('print-date').textContent =
+        new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      loadRealtimeDatabase();
     });
 
-    document.addEventListener('click', function autoFsOnce() {
-      enterFullscreen();
-      document.removeEventListener('click', autoFsOnce);
-    }, { once: true });
+    document.addEventListener('click', () => requestFull(), { once: true });
 
-    function updatePrintDate() {
-      const opsi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-      document.getElementById('print-date').textContent = new Date().toLocaleDateString('id-ID', opsi);
+    // Efek Perspektif 3D Tilt pada Kartu KPI
+    function init3DTiltCards() {
+      document.querySelectorAll('.tilt-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const rotateX = ((y / rect.height) - 0.5) * -10;
+          const rotateY = ((x / rect.width) - 0.5) * 10;
+          card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        });
+      });
     }
 
-    function formatRp(angka) {
-      const num = Number(angka) || 0;
-      return 'Rp ' + num.toLocaleString('id-ID');
+    // Navigasi Antar Halaman
+    function switchPage(pageId, pageTitle, btnEl) {
+      document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      btnEl.classList.add('active');
+      document.getElementById('print-page-name').textContent = pageTitle;
     }
 
-    function parseNumber(val) {
+    function formatRp(num) {
+      return 'Rp ' + (Number(num) || 0).toLocaleString('id-ID');
+    }
+
+    function parseNum(val) {
       if (typeof val === 'number') return val;
       if (!val) return 0;
-      const cleaned = String(val).replace(/[^0-9,-]/g, '').replace(/\./g, '').replace(',', '.');
-      return parseFloat(cleaned) || 0;
+      const clean = String(val).replace(/[^0-9,-]/g, '').replace(/\./g, '').replace(',', '.');
+      return parseFloat(clean) || 0;
     }
 
-    function formatExcelDate(val) {
+    function parseDateCell(val) {
       if (!val) return '-';
       if (typeof val === 'number' && val > 20000) {
-        const date = new Date(Math.round((val - 25569) * 86400 * 1000));
-        return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+        return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
       }
       return String(val);
     }
 
-    // Sinkronisasi Kuat dengan Fallback LocalStorage & Demo Data
-    async function syncDatabase() {
+    // 2. Fetch Real-Time dari database.xlsx di Root Repository
+    async function loadRealtimeDatabase() {
       const loader = document.getElementById('loading-screen');
-      const statusEl = document.getElementById('sync-status');
+      const statusText = document.getElementById('db-status-text');
       loader.style.display = 'flex';
       loader.style.opacity = '1';
 
-      let loaded = false;
-      const candidateFiles = ['database.xlsx', 'data.xlsx', 'keuangan.xlsx'];
-
-      for (const fileName of candidateFiles) {
-        try {
-          const res = await fetch(`${fileName}?t=${Date.now()}`, { cache: 'no-store' });
-          if (res.ok) {
-            const buf = await res.arrayBuffer();
-            processWorkbook(buf, fileName);
-            loaded = true;
-            break;
-          }
-        } catch (e) {
-          // Lanjut coba kandidat berikutnya
-        }
+      try {
+        // Tambahkan query anti-cache agar selalu baca commit terbaru di GitHub
+        const response = await fetch(`./database.xlsx?v=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const arrayBuffer = await response.arrayBuffer();
+        extractExcelWorkbook(arrayBuffer, 'database.xlsx');
+      } catch (err) {
+        statusText.textContent = 'Gagal fetch otomatis (cek koneksi/server). Gunakan tombol "Muat Excel Manual" di atas.';
+        console.error('Fetch database.xlsx error:', err);
+      } finally {
+        setTimeout(() => {
+          loader.style.opacity = '0';
+          setTimeout(() => { loader.style.display = 'none'; }, 400);
+        }, 300);
       }
-
-      // Jika gagal dari server, cek apakah ada backup di LocalStorage
-      if (!loaded) {
-        const savedData = localStorage.getItem('adi_keuangan_db');
-        if (savedData) {
-          try {
-            const parsed = JSON.parse(savedData);
-            ALL_RECORDS = parsed.records;
-            populateSheetDropdown(parsed.sheets);
-            statusEl.textContent = `Memuat dari Cache Memori Browser (${ALL_RECORDS.length} Baris)`;
-            renderDashboard();
-            loaded = true;
-          } catch (err) {}
-        }
-      }
-
-      // Fallback terakhir: Buat data demo dinamis jika file benar-benar belum ada agar tampil spektakuler
-      if (!loaded) {
-        loadDemoDatabase();
-        statusEl.textContent = 'Menggunakan Mode Live Demo (Silakan klik "Muat File Excel" untuk upload database Bang Adi).';
-      }
-
-      setTimeout(() => {
-        loader.style.opacity = '0';
-        setTimeout(() => { loader.style.display = 'none'; }, 400);
-      }, 350);
     }
 
-    // Upload Manual dengan Penyimpanan Otomatis ke LocalStorage
-    document.getElementById('manual-file').addEventListener('change', function(e) {
+    // Upload Manual jika dibuka offline
+    document.getElementById('excel-upload').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(evt) {
-        processWorkbook(evt.target.result, file.name);
-        enterFullscreen();
-      };
+      reader.onload = evt => extractExcelWorkbook(evt.target.result, file.name);
       reader.readAsArrayBuffer(file);
     });
 
-    function processWorkbook(buffer, sourceName) {
-      const workbook = XLSX.read(buffer, { type: 'array' });
-      ALL_RECORDS = [];
-      const sheetNamesList = workbook.SheetNames;
+    // 3. Ekstrak Seluruh Sheet & Kolom Secara Dinamis
+    function extractExcelWorkbook(buffer, fileName) {
+      const wb = XLSX.read(buffer, { type: 'array' });
+      WORKBOOK_DATA = {};
+      ALL_PARSED_ROWS = [];
 
-      sheetNamesList.forEach(sheetName => {
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      const selector = document.getElementById('sheet-selector');
+      selector.innerHTML = '';
 
-        rows.forEach(row => {
+      wb.SheetNames.forEach(sheetName => {
+        const sheet = wb.Sheets[sheetName];
+        const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        WORKBOOK_DATA[sheetName] = jsonRows;
+
+        const opt = document.createElement('option');
+        opt.value = sheetName;
+        opt.textContent = `${sheetName} (${jsonRows.length} baris)`;
+        selector.appendChild(opt);
+
+        jsonRows.forEach(row => {
           const keys = Object.keys(row);
-          if (keys.length === 0) return;
+          if (!keys.length) return;
 
-          const getCol = (keywords) => {
-            const foundKey = keys.find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
-            return foundKey ? row[foundKey] : '';
+          const findVal = (kws) => {
+            const k = keys.find(key => kws.some(w => key.toLowerCase().includes(w)));
+            return k ? row[k] : '';
           };
 
-          const tanggal = formatExcelDate(getCol(['tanggal', 'tgl', 'date', 'waktu']));
-          const kategori = getCol(['kategori', 'akun', 'nama', 'tabungan', 'jenis', 'pos']) || sheetName;
-          const keterangan = getCol(['keterangan', 'uraian', 'deskripsi', 'catatan', 'transaksi', 'item']) || '-';
-          
-          const masuk = parseNumber(getCol(['masuk', 'debit', 'pemasukan', 'setor']));
-          const keluar = parseNumber(getCol(['keluar', 'kredit', 'pengeluaran', 'tarik', 'ambil']));
-          const saldoNominal = parseNumber(getCol(['saldo', 'nominal', 'jumlah', 'total', 'nilai']));
+          const tanggal = parseDateCell(findVal(['tanggal', 'tgl', 'date', 'waktu', 'bulan']));
+          const kategori = String(findVal(['kategori', 'akun', 'nama', 'pos', 'jenis', 'item']) || sheetName);
+          const keterangan = String(findVal(['keterangan', 'uraian', 'deskripsi', 'catatan', 'transaksi']) || '-');
 
-          if (masuk === 0 && keluar === 0 && saldoNominal === 0 && keterangan === '-') return;
+          const masuk = parseNum(findVal(['masuk', 'debit', 'setor', 'pemasukan', 'kredit_in']));
+          const keluar = parseNum(findVal(['keluar', 'kredit', 'tarik', 'ambil', 'pengeluaran']));
+          const saldo = parseNum(findVal(['saldo', 'nominal', 'jumlah', 'total', 'nilai', 'sisa']));
 
-          ALL_RECORDS.push({
+          if (masuk === 0 && keluar === 0 && saldo === 0 && keterangan === '-') return;
+
+          ALL_PARSED_ROWS.push({
             sheet: sheetName,
             tanggal,
-            kategori: String(kategori),
-            keterangan: String(keterangan),
+            kategori,
+            keterangan,
             masuk,
             keluar,
-            nominal: saldoNominal || (masuk - keluar)
+            nilai: saldo !== 0 ? saldo : (masuk - keluar)
           });
         });
       });
 
-      populateSheetDropdown(sheetNamesList);
+      const jam = new Date().toLocaleTimeString('id-ID');
+      document.getElementById('db-status-text').textContent =
+        `Tersinkron Real-Time: ${fileName} (${wb.SheetNames.length} Sheet, ${ALL_PARSED_ROWS.length} Data) • Pukul ${jam}`;
+      document.getElementById('db-meta-info').textContent =
+        `Sheet Aktif: ${wb.SheetNames.join(', ')}`;
 
-      // Simpan ke LocalStorage agar aman dari error fetch di masa depan
-      try {
-        localStorage.setItem('adi_keuangan_db', JSON.stringify({
-          sheets: sheetNamesList,
-          records: ALL_RECORDS
-        }));
-      } catch (e) {}
-
-      document.getElementById('sync-status').textContent =
-        `Tersinkron Sempurna: ${sourceName} (${sheetNamesList.length} Sheet, ${ALL_RECORDS.length} Baris)`;
-      renderDashboard();
+      renderAllTables();
+      renderSingleSheet();
     }
 
-    function populateSheetDropdown(sheets) {
-      const sheetSelect = document.getElementById('sheet-filter');
-      sheetSelect.innerHTML = '<option value="ALL">Semua Sheet (Gabungan Real-Time)</option>';
-      sheets.forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        sheetSelect.appendChild(opt);
+    // 4. Render Seluruh Halaman Secara Real-Time
+    function renderAllTables() {
+      let totalIn = 0, totalOut = 0, totalNet = 0;
+      let nazilaIn = 0, nazilaOut = 0, nazilaNet = 0;
+
+      const sheetSummary = {};
+      const nazilaRows = [];
+      const aktivaRows = [];
+
+      ALL_PARSED_ROWS.forEach(r => {
+        totalIn += r.masuk;
+        totalOut += r.keluar;
+        const rowEffect = (r.masuk > 0 || r.keluar > 0) ? (r.masuk - r.keluar) : r.nilai;
+        totalNet += rowEffect;
+
+        // Rekap per Sheet
+        if (!sheetSummary[r.sheet]) {
+          sheetSummary[r.sheet] = { count: 0, masuk: 0, keluar: 0, saldo: 0 };
+        }
+        sheetSummary[r.sheet].count++;
+        sheetSummary[r.sheet].masuk += r.masuk;
+        sheetSummary[r.sheet].keluar += r.keluar;
+        sheetSummary[r.sheet].saldo += rowEffect;
+
+        // Filter Tabungan Nazila
+        if (r.sheet.toLowerCase().includes('nazila') || r.kategori.toLowerCase().includes('nazila')) {
+          nazilaRows.push(r);
+          nazilaIn += r.masuk;
+          nazilaOut += r.keluar;
+          nazilaNet += rowEffect;
+        }
+
+        // Filter Aktiva / Aset / Tabungan
+        if (
+          r.sheet.toLowerCase().includes('aktiva') ||
+          r.sheet.toLowerCase().includes('aset') ||
+          r.sheet.toLowerCase().includes('tabungan') ||
+          r.kategori.toLowerCase().includes('aset')
+        ) {
+          aktivaRows.push(r);
+        }
       });
+
+      // Update KPI Dashboard & Nazila
+      document.getElementById('dash-net').textContent = formatRp(totalNet);
+      document.getElementById('dash-nazila').textContent = formatRp(nazilaNet);
+      document.getElementById('dash-in').textContent = formatRp(totalIn);
+      document.getElementById('dash-out').textContent = formatRp(totalOut);
+
+      document.getElementById('nazila-saldo').textContent = formatRp(nazilaNet);
+      document.getElementById('nazila-in').textContent = formatRp(nazilaIn);
+      document.getElementById('nazila-out').textContent = formatRp(nazilaOut);
+
+      // Tabel Ringkasan Per Sheet (Dashboard)
+      const tbodySheet = document.getElementById('tbody-ringkasan-sheet');
+      const sheetKeys = Object.keys(sheetSummary);
+      tbodySheet.innerHTML = sheetKeys.length ? sheetKeys.map((sName, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${sName}</strong></td>
+          <td class="num">${sheetSummary[sName].count}</td>
+          <td class="num c-green">${formatRp(sheetSummary[sName].masuk)}</td>
+          <td class="num c-red">${formatRp(sheetSummary[sName].keluar)}</td>
+          <td class="num c-gold"><strong>${formatRp(sheetSummary[sName].saldo)}</strong></td>
+        </tr>
+      `).join('') : `<tr><td colspan="6" style="text-align:center;">Belum ada data terbaca dari database.xlsx</td></tr>`;
+
+      // Tabel Tabungan Nazila
+      const tbodyNazila = document.getElementById('tbody-nazila');
+      tbodyNazila.innerHTML = nazilaRows.length ? nazilaRows.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${r.tanggal}</td>
+          <td>${r.kategori}</td>
+          <td>${r.keterangan}</td>
+          <td class="num c-green">${r.masuk ? formatRp(r.masuk) : '-'}</td>
+          <td class="num c-red">${r.keluar ? formatRp(r.keluar) : '-'}</td>
+          <td class="num c-cyan"><strong>${formatRp(r.nilai)}</strong></td>
+        </tr>
+      `).join('') : `<tr><td colspan="7" style="text-align:center;">Tidak ditemukan baris bertema Nazila di database.xlsx</td></tr>`;
+
+      // Tabel Semua Transaksi (dengan Search)
+      const q = document.getElementById('search-all').value.toLowerCase().trim();
+      const filteredAll = ALL_PARSED_ROWS.filter(r =>
+        !q ||
+        r.sheet.toLowerCase().includes(q) ||
+        r.kategori.toLowerCase().includes(q) ||
+        r.keterangan.toLowerCase().includes(q) ||
+        r.tanggal.toLowerCase().includes(q)
+      );
+
+      document.getElementById('tbody-all').innerHTML = filteredAll.length ? filteredAll.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${r.sheet}</strong></td>
+          <td>${r.tanggal}</td>
+          <td>${r.kategori}</td>
+          <td>${r.keterangan}</td>
+          <td class="num c-green">${r.masuk ? formatRp(r.masuk) : '-'}</td>
+          <td class="num c-red">${r.keluar ? formatRp(r.keluar) : '-'}</td>
+          <td class="num c-gold"><strong>${formatRp(r.nilai)}</strong></td>
+        </tr>
+      `).join('') : `<tr><td colspan="8" style="text-align:center;">Data transaksi tidak ditemukan.</td></tr>`;
+
+      // Tabel Aktiva & Aset
+      const listAktiva = aktivaRows.length ? aktivaRows : ALL_PARSED_ROWS;
+      document.getElementById('tbody-aktiva').innerHTML = listAktiva.length ? listAktiva.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${r.sheet}</strong></td>
+          <td>${r.kategori}</td>
+          <td>${r.keterangan}</td>
+          <td class="num c-gold"><strong>${formatRp(r.nilai)}</strong></td>
+        </tr>
+      `).join('') : `<tr><td colspan="5" style="text-align:center;">Belum ada data aktiva.</td></tr>`;
     }
 
-    function loadDemoDatabase() {
-      ALL_RECORDS = [
-        { sheet: 'Tabungan Nazila', tanggal: '15 Nov 2026', kategori: 'Tabungan Wajib', keterangan: 'Setoran Bulan November', masuk: 500000, keluar: 0, nominal: 500000 },
-        { sheet: 'Kas Umum', tanggal: '14 Nov 2026', kategori: 'Pemasukan Jasa', keterangan: 'Live Music Keyboardist', masuk: 1500000, keluar: 0, nominal: 1500000 },
-        { sheet: 'Kas Umum', tanggal: '13 Nov 2026', kategori: 'Operasional', keterangan: 'Pembelian Kabel & Soket Audio', masuk: 0, keluar: 150000, nominal: -150000 }
-      ];
-      populateSheetDropdown(['Tabungan Nazila', 'Kas Umum']);
-      renderDashboard();
-    }
+    // 5. Render Tabel Mentah Per Sheet
+    function renderSingleSheet() {
+      const sheetName = document.getElementById('sheet-selector').value;
+      const rows = WORKBOOK_DATA[sheetName] || [];
+      const thead = document.getElementById('raw-thead');
+      const tbody = document.getElementById('raw-tbody');
 
-    function renderDashboard() {
-      const selectedSheet = document.getElementById('sheet-filter').value;
-      const keyword = document.getElementById('search-input').value.toLowerCase().trim();
-      const tbody = document.getElementById('table-body');
-
-      document.getElementById('print-sheet-label').textContent =
-        selectedSheet === 'ALL' ? 'Semua Sheet Terpadu' : selectedSheet;
-
-      const filtered = ALL_RECORDS.filter(item => {
-        const matchSheet = selectedSheet === 'ALL' || item.sheet === selectedSheet;
-        const matchSearch = !keyword ||
-          item.sheet.toLowerCase().includes(keyword) ||
-          item.kategori.toLowerCase().includes(keyword) ||
-          item.keterangan.toLowerCase().includes(keyword) ||
-          item.tanggal.toLowerCase().includes(keyword);
-        return matchSheet && matchSearch;
-      });
-
-      let totalIn = 0;
-      let totalOut = 0;
-      let totalSaving = 0;
-      let totalNet = 0;
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">Tidak ada data yang ditemukan.</td></tr>`;
-      } else {
-        tbody.innerHTML = filtered.map((row, idx) => {
-          totalIn += row.masuk;
-          totalOut += row.keluar;
-
-          const isTabungan = row.sheet.toLowerCase().includes('tabungan') ||
-                             row.kategori.toLowerCase().includes('tabungan') ||
-                             row.kategori.toLowerCase().includes('nazila');
-
-          if (isTabungan) {
-            totalSaving += (row.masuk > 0 || row.keluar > 0) ? (row.masuk - row.keluar) : row.nominal;
-          }
-
-          const rowVal = (row.masuk > 0 || row.keluar > 0) ? (row.masuk - row.keluar) : row.nominal;
-          totalNet += rowVal;
-
-          return `
-            <tr>
-              <td>${idx + 1}</td>
-              <td><strong>${row.sheet}</strong></td>
-              <td>${row.tanggal}</td>
-              <td>${row.kategori}</td>
-              <td>${row.keterangan}</td>
-              <td class="num text-green">${row.masuk ? formatRp(row.masuk) : '-'}</td>
-              <td class="num text-red">${row.keluar ? formatRp(row.keluar) : '-'}</td>
-              <td class="num text-gold"><strong>${formatRp(row.nominal)}</strong></td>
-            </tr>
-          `;
-        }).join('');
+      if (!rows.length) {
+        thead.innerHTML = '';
+        tbody.innerHTML = '<tr><td style="text-align:center; padding:16px;">Sheet kosong.</td></tr>';
+        return;
       }
 
-      document.getElementById('kpi-in').textContent = formatRp(totalIn);
-      document.getElementById('kpi-out').textContent = formatRp(totalOut);
-      document.getElementById('kpi-saving').textContent = formatRp(totalSaving);
-      document.getElementById('kpi-net').textContent = formatRp(totalNet);
+      const headers = Object.keys(rows[0]);
+      thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+      tbody.innerHTML = rows.map(row => `
+        <tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>
+      `).join('');
     }
   </script>
 </body>
