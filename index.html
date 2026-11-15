@@ -1,2226 +1,699 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistem Keuangan Terpadu</title>
-
-  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js & SheetJS (XLSX) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-
+  <title>Sistem Keuangan Terpadu — Bang Adi Muhtar</title>
+  <!-- Library SheetJS untuk baca Excel Real-Time -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
-      --bg-deep: #070913;
-      --bg-card: rgba(30, 41, 59, 0.72);
-      --border-glass: rgba(255, 255, 255, 0.1);
-      --accent-cyan: #06b6d4;
-      --accent-indigo: #6366f1;
-      --accent-emerald: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-violet: #8b5cf6;
-      --accent-rose: #f43f5e;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-gold: #f59e0b;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-blue: #3b82f6;
     }
 
-    * { box-sizing: border-box; }
-
-    body {
-      background-color: var(--bg-deep);
-      color: #f8fafc;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+    * {
+      box-sizing: border-box;
       margin: 0;
-      overflow-x: hidden;
-      min-height: 100vh;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    .font-mono-num {
-      font-family: 'JetBrains Mono', monospace;
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    /* Overlay Loading Fullscreen */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #090d16;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      transition: opacity 0.4s ease;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(245, 158, 11, 0.2);
+      border-top-color: var(--accent-gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Layout Utama */
+    .app-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 16px 20px;
+    }
+
+    /* Header Layar */
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .brand-title h1 {
+      font-size: 1.35rem;
+      letter-spacing: 0.5px;
+      color: var(--accent-gold);
+    }
+
+    .screen-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 7px 13px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    .btn-primary {
+      background: var(--accent-gold);
+      color: #000;
+      border-color: var(--accent-gold);
+    }
+
+    .btn-primary:hover {
+      background: #d97706;
+      color: #000;
+    }
+
+    /* Filter & Status Bar */
+    .status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    .dot-live {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    select, input[type="text"] {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+    }
+
+    /* Ringkasan Kartu KPI */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .kpi-label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .kpi-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .text-green { color: var(--accent-green); }
+    .text-red { color: var(--accent-red); }
+    .text-gold { color: var(--accent-gold); }
+    .text-blue { color: var(--accent-blue); }
+
+    /* Tabel Data */
+    .table-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #162032;
+      color: var(--accent-gold);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .num {
+      text-align: right;
       font-variant-numeric: tabular-nums;
     }
 
-    .bg-cyber-grid {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(to right, rgba(6, 182, 212, 0.045) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(99, 102, 241, 0.045) 1px, transparent 1px);
-      background-size: 48px 48px;
-      mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 45%, transparent 100%);
-      -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 45%, transparent 100%);
+    /* Header Khusus Print (Tersembunyi di Layar) */
+    .print-header {
+      display: none;
     }
 
-    .ambient-orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(115px);
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.42;
-      animation: floatOrb 18s ease-in-out infinite alternate;
-    }
-
-    .orb-1 { width: 520px; height: 520px; background: radial-gradient(circle, rgba(6, 182, 212, 0.55), transparent 70%); top: -140px; left: 12%; }
-    .orb-2 { width: 560px; height: 560px; background: radial-gradient(circle, rgba(99, 102, 241, 0.5), transparent 70%); bottom: -160px; right: 4%; animation-delay: -5s; }
-    .orb-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(16, 185, 129, 0.35), transparent 70%); top: 38%; left: 46%; animation-delay: -9s; }
-    .orb-4 { width: 380px; height: 380px; background: radial-gradient(circle, rgba(139, 92, 246, 0.36), transparent 70%); top: 12%; right: 18%; animation-delay: -13s; }
-
-    @keyframes floatOrb {
-      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-      100% { transform: translate(35px, -30px) scale(1.1) rotate(12deg); }
-    }
-
-    @property --border-angle {
-      syntax: "<angle>";
-      inherits: true;
-      initial-value: 0deg;
-    }
-
-    @keyframes spinBorder {
-      to { --border-angle: 360deg; }
-    }
-
-    .glass-card {
-      position: relative;
-      background: linear-gradient(155deg, rgba(30, 41, 59, 0.78) 0%, rgba(15, 23, 42, 0.84) 100%);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid var(--border-glass);
-      box-shadow: 0 22px 45px -15px rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
-      transform-style: preserve-3d;
-      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-      overflow: hidden;
-    }
-
-    .glass-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(420px circle at var(--mouse-x, 50%) var(--mouse-y, 0%), rgba(255, 255, 255, 0.11), rgba(6, 182, 212, 0.05) 35%, transparent 70%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 1;
-    }
-
-    .glass-card:hover::before { opacity: 1; }
-
-    .glass-card-hover:hover {
-      border-color: rgba(6, 182, 212, 0.42);
-      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.88), 0 0 32px -6px rgba(6, 182, 212, 0.28), 0 0 18px -6px rgba(139, 92, 246, 0.24), inset 0 1px 0 0 rgba(255, 255, 255, 0.24);
-    }
-
-    .hero-glass {
-      position: relative;
-      background: radial-gradient(circle at 15% 20%, rgba(6, 182, 212, 0.24), transparent 45%), radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.24), transparent 50%), linear-gradient(135deg, rgba(13, 20, 38, 0.92) 0%, rgba(26, 36, 60, 0.82) 50%, rgba(12, 74, 110, 0.42) 100%);
-      backdrop-filter: blur(26px) saturate(190%);
-      -webkit-backdrop-filter: blur(26px) saturate(190%);
-      border: 1px solid transparent;
-      background-clip: padding-box;
-      box-shadow: 0 28px 65px -12px rgba(0, 0, 0, 0.85), 0 0 42px -10px rgba(6, 182, 212, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
-    }
-
-    .hero-glass::after {
-      content: "";
-      position: absolute;
-      inset: -1.5px;
-      border-radius: inherit;
-      padding: 1.5px;
-      background: conic-gradient(from var(--border-angle), rgba(6, 182, 212, 0.75), rgba(99, 102, 241, 0.55), rgba(16, 185, 129, 0.75), rgba(139, 92, 246, 0.65), rgba(6, 182, 212, 0.75));
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-      animation: spinBorder 8s linear infinite;
-    }
-
-    .hero-glass-rose {
-      position: relative;
-      background: radial-gradient(circle at 15% 20%, rgba(244, 63, 94, 0.25), transparent 45%), radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.22), transparent 50%), linear-gradient(135deg, rgba(24, 15, 32, 0.94) 0%, rgba(45, 22, 48, 0.85) 50%, rgba(136, 19, 55, 0.42) 100%);
-      backdrop-filter: blur(26px) saturate(190%);
-      -webkit-backdrop-filter: blur(26px) saturate(190%);
-      border: 1px solid transparent;
-      background-clip: padding-box;
-      box-shadow: 0 28px 65px -12px rgba(0, 0, 0, 0.85), 0 0 42px -10px rgba(244, 63, 94, 0.32), inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
-    }
-
-    .hero-glass-rose::after {
-      content: "";
-      position: absolute;
-      inset: -1.5px;
-      border-radius: inherit;
-      padding: 1.5px;
-      background: conic-gradient(from var(--border-angle), rgba(244, 63, 94, 0.8), rgba(236, 72, 153, 0.6), rgba(245, 158, 11, 0.65), rgba(168, 85, 247, 0.65), rgba(244, 63, 94, 0.8));
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-      animation: spinBorder 8s linear infinite;
-    }
-
-    .text-aurora-shimmer {
-      background: linear-gradient(90deg, #ffffff 0%, #67e8f9 25%, #a5b4fc 50%, #6ee7b7 75%, #ffffff 100%);
-      background-size: 220% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: shimmerText 6s linear infinite;
-    }
-
-    @keyframes shimmerText {
-      to { background-position: 220% center; }
-    }
-
-    .btn-luxury {
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
-    }
-
-    .btn-luxury::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -120%;
-      width: 80%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
-      transform: skewX(-22deg);
-      transition: left 0.55s ease;
-      pointer-events: none;
-    }
-
-    .btn-luxury:hover { transform: translateY(-2px); }
-    .btn-luxury:hover::after { left: 140%; }
-    .btn-luxury:active { transform: translateY(0) scale(0.97); }
-
-    .sidebar-glass {
-      width: 280px;
-      background: #0a0f1e;
-      border-right: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 20px 0 50px rgba(0, 0, 0, 0.85);
-    }
-
-    .nav-item {
-      transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-      border: 1px solid transparent;
-    }
-
-    .nav-item:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.14);
-      transform: translateX(4px);
-    }
-
-    .nav-item.active {
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.28), rgba(99, 102, 241, 0.25));
-      border-color: rgba(6, 182, 212, 0.55);
-      box-shadow: 0 8px 20px -6px rgba(6, 182, 212, 0.45);
-      color: #ffffff;
-    }
-
-    .logo-3d {
-      background: linear-gradient(135deg, #06b6d4 0%, #6366f1 45%, #8b5cf6 75%, #10b981 100%);
-      box-shadow: 0 12px 28px -5px rgba(6, 182, 212, 0.65), 0 0 18px rgba(139, 92, 246, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 6px rgba(0, 0, 0, 0.4);
-      transition: transform 0.3s ease;
-    }
-
-    .logo-3d:hover { transform: rotateY(14deg) rotateX(8deg) scale(1.05); }
-
-    .page-view {
-      animation: pageEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-
-    @keyframes pageEnter {
-      0% { opacity: 0; transform: translateY(14px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    ::-webkit-scrollbar { width: 7px; height: 7px; }
-    ::-webkit-scrollbar-track { background: rgba(7, 9, 19, 0.6); }
-    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.5); }
-
-    .glass-input {
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #f8fafc;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .glass-input:focus {
-      outline: none;
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
-    }
-
-    /* ========================================================================= */
-    /* FORMAL & PROFESSIONAL A4 PRINT STYLESHEET                                */
-    /* ========================================================================= */
+    /* =========================================================
+       ATURAN CETAK / PRINT PRESISI, PADAT & RAPAT (TANPA HEADER ATAS)
+       ========================================================= */
     @media print {
       @page {
-        size: A4;
-        margin: 1.5cm;
+        size: A4 portrait;
+        margin: 8mm 8mm 8mm 8mm;
       }
-      body {
+
+      html, body {
         background: #ffffff !important;
         color: #000000 !important;
-        font-family: 'Times New Roman', Times, serif, 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 11pt;
-        line-height: 1.4;
+        height: auto !important;
+        overflow: visible !important;
+        font-size: 8.5pt !important;
+        line-height: 1.25 !important;
       }
-      .bg-cyber-grid, .ambient-orb, #sidebar, #mobileHeader, #sidebarOverlay, .no-print, header, button, input, select {
+
+      /* Sembunyikan semua elemen UI layar & teks subjudul yang diminta dibuang */
+      #loading-screen,
+      .top-bar,
+      .screen-subtitle,
+      .controls,
+      .status-strip,
+      .no-print {
         display: none !important;
       }
-      #mainAppContainer, #mainWrapper, #pageContainer {
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
+
+      .app-container {
+        max-width: 100% !important;
         width: 100% !important;
-        background: #ffffff !important;
-        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
-      .glass-card, .hero-glass, .hero-glass-rose {
+
+      /* Kop Surat Print Bersih Langsung ke Judul Utama */
+      .print-header {
+        display: block !important;
+        text-align: center;
+        border-bottom: 1.8pt solid #000000;
+        padding-bottom: 4pt;
+        margin-bottom: 6pt;
+      }
+
+      .print-header h2 {
+        font-size: 12pt !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.4pt;
+        color: #000000 !important;
+        margin: 0 0 2pt 0 !important;
+        text-transform: uppercase;
+      }
+
+      .print-header p {
+        font-size: 8pt !important;
+        color: #222222 !important;
+        margin: 0 !important;
+      }
+
+      /* KPI Grid Padat 4 Kolom Sejajar */
+      .kpi-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4pt !important;
+        margin-bottom: 6pt !important;
+      }
+
+      .kpi-card {
+        background: #ffffff !important;
+        border: 0.8pt solid #444444 !important;
+        border-radius: 2pt !important;
+        padding: 4pt 6pt !important;
+        break-inside: avoid;
+      }
+
+      .kpi-label {
+        font-size: 6.8pt !important;
+        color: #333333 !important;
+        font-weight: 700 !important;
+      }
+
+      .kpi-value {
+        font-size: 9.5pt !important;
+        color: #000000 !important;
+        margin-top: 1pt !important;
+      }
+
+      /* Tabel Rapat & Presisi */
+      .table-wrapper {
         background: #ffffff !important;
         border: none !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
-        color: #000000 !important;
-        padding: 0 !important;
-        margin-bottom: 15px !important;
+        overflow: visible !important;
       }
+
       table {
         width: 100% !important;
         border-collapse: collapse !important;
-        margin-top: 10px;
-        margin-bottom: 15px;
-        page-break-inside: auto;
+        font-size: 7.8pt !important;
       }
-      tr { page-break-inside: avoid; page-break-after: auto; }
-      thead { display: table-header-group; }
-      th, td {
-        border: 1px solid #333333 !important;
-        padding: 6px 8px !important;
-        font-size: 10pt !important;
-        color: #000000 !important;
-        text-align: left;
-      }
+
       th {
-        background-color: #f0f0f0 !important;
-        font-weight: bold !important;
-        text-transform: uppercase;
+        background: #eeeeee !important;
+        color: #000000 !important;
+        border: 0.6pt solid #333333 !important;
+        padding: 3pt 4pt !important;
+        font-weight: 700 !important;
+        position: static !important;
       }
-      .print-header-title {
-        display: block !important;
-        text-align: center;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #000;
-        padding-bottom: 10px;
+
+      td {
+        color: #000000 !important;
+        border: 0.5pt solid #666666 !important;
+        padding: 2.2pt 4pt !important;
       }
-      .print-header-title h2 { font-size: 16pt; font-weight: bold; margin: 0; color: #000; }
-      .print-header-title p { font-size: 10pt; margin: 4px 0 0 0; color: #333; }
+
+      tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .text-green, .text-red, .text-gold, .text-blue {
+        color: #000000 !important;
+      }
     }
-    .print-header-title { display: none; }
   </style>
 </head>
-<body class="antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+<body>
 
-  <!-- Cyber Grid & Ambient Aurora Glow Orbs -->
-  <div class="bg-cyber-grid"></div>
-  <div class="ambient-orb orb-1"></div>
-  <div class="ambient-orb orb-2"></div>
-  <div class="ambient-orb orb-3"></div>
-  <div class="ambient-orb orb-4"></div>
-
-  <!-- LOGIN SCREEN -->
-  <div id="loginScreen" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#070913]/95 backdrop-blur-2xl">
-    <div class="glass-card hero-glass w-full max-w-md rounded-3xl p-8 sm:p-10 border border-white/20 text-center relative shadow-2xl">
-      <div class="logo-3d w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-3xl font-extrabold text-white mb-6 shadow-2xl">
-        FF
-      </div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold text-aurora-shimmer mb-2">Selamat Datang, Bang Adi</h1>
-      <p class="text-xs sm:text-sm text-slate-300 mb-6">Sistem Keuangan Terpadu — Pembacaan Otomatis Langsung dari <span class="text-cyan-300 font-mono-num">./database_keuangan_sync.xlsx</span></p>
-
-      <form onsubmit="handleLogin(event)" class="space-y-5">
-        <div>
-          <input type="password" id="loginPasswordInput" required placeholder="Masukkan password..." autocomplete="current-password" class="glass-input w-full px-5 py-3.5 rounded-2xl text-center text-lg font-mono-num tracking-widest" />
-        </div>
-        <button type="submit" class="btn-luxury w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white font-extrabold text-base shadow-xl shadow-cyan-500/30">
-          Masuk Sistem
-        </button>
-      </form>
-      <div class="mt-6 text-[11px] text-slate-400 font-mono-num">
-        Mode Sesi Aktif • Realtime Database Sync
-      </div>
-    </div>
+  <!-- Layar Loading Fullscreen -->
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <div style="font-weight:700; color:#f59e0b; letter-spacing:0.5px;">MEMUAT DATABASE REAL-TIME...</div>
+    <div style="font-size:0.8rem; color:#94a3b8;">Menghubungkan seluruh sheet & transaksi</div>
   </div>
 
-  <!-- MAIN APP CONTAINER -->
-  <div id="mainAppContainer" class="hidden min-h-screen flex flex-col">
-    <!-- Mobile Top Header (z-30) -->
-    <header id="mobileHeader" class="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[#0b1020] border-b border-white/15">
-      <div class="flex items-center gap-3">
-        <div class="logo-3d w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-white text-base tracking-tight">FF</div>
-        <div>
-          <div class="font-bold text-sm text-white leading-tight">FinFlow 3D</div>
-          <div class="text-[11px] text-cyan-400 font-medium">Adi Muhtar System</div>
-        </div>
+  <div class="app-container">
+    <!-- KOP KHUSUS PRINT (Tanpa kalimat deskripsi atas) -->
+    <div class="print-header">
+      <h2>SISTEM KEUANGAN TERPADU — BANG ADI MUHTAR</h2>
+      <p><strong>Laporan:</strong> <span id="print-sheet-label">Semua Data Terpadu</span> &nbsp;|&nbsp; <strong>Tanggal Cetak:</strong> <span id="print-date"></span></p>
+    </div>
+
+    <!-- Header Layar Utama -->
+    <div class="top-bar">
+      <div class="brand-title">
+        <h1>SISTEM KEUANGAN TERPADU — BANG ADI MUHTAR</h1>
+        <div class="screen-subtitle">Ringkasan eksekutif saldo saat ini, komposisi aktiva, dan statistik seluruh transaksi.</div>
       </div>
-      <button type="button" onclick="toggleSidebar()" class="p-2.5 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-cyan-500/20 active:scale-95 transition" aria-label="Buka Menu">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-    </header>
+      <div class="controls">
+        <input type="file" id="manual-file" accept=".xlsx,.xls,.csv" style="display:none" />
+        <button class="btn" onclick="document.getElementById('manual-file').click()">📂 Muat File Excel</button>
+        <button class="btn" onclick="syncDatabase()">🔄 Sinkron Ulang</button>
+        <button class="btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Cetak Presisi</button>
+      </div>
+    </div>
 
-    <!-- Mobile Backdrop Overlay (z-40) -->
-    <div id="sidebarOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/75 z-40 hidden lg:hidden"></div>
+    <!-- Bar Status & Filter -->
+    <div class="status-strip">
+      <div class="badge-live">
+        <span class="dot-live"></span>
+        <span id="sync-status">Menunggu sinkronisasi database...</span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <label for="sheet-filter" style="color:var(--text-muted);">Sumber Sheet:</label>
+        <select id="sheet-filter" onchange="renderDashboard()">
+          <option value="ALL">Semua Sheet (Gabungan Real-Time)</option>
+        </select>
+        <input type="text" id="search-input" placeholder="Cari keterangan / kategori / akun..." oninput="renderDashboard()" />
+      </div>
+    </div>
 
-    <!-- Layout Wrapper -->
-    <div class="relative flex flex-1 min-h-screen">
-      <!-- Left Sidebar (z-50) -->
-      <aside id="sidebar" class="sidebar-glass fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col justify-between transition-transform duration-300 ease-out -translate-x-full lg:translate-x-0 shrink-0">
-        <div class="p-5 overflow-y-auto flex-1">
-          <div class="flex items-center justify-between mb-6 pb-5 border-b border-white/10">
-            <div class="flex items-center gap-3.5">
-              <div class="logo-3d w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-white text-lg tracking-wider shrink-0">
-                FF
-              </div>
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <span class="font-extrabold text-lg text-white tracking-tight">FinFlow 3D</span>
-                </div>
-                <p class="text-[11px] uppercase tracking-widest text-cyan-400 font-semibold">Adi Muhtar</p>
-                <p class="text-xs text-slate-400 mt-0.5">Sistem Keuangan Terpadu</p>
-              </div>
-            </div>
-            <button type="button" onclick="closeSidebar()" class="lg:hidden p-2 rounded-xl bg-white/5 text-slate-300 hover:text-white hover:bg-white/10" aria-label="Tutup Menu">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+    <!-- Ringkasan Saldo (Dihitung 100% Real-Time dari File) -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Pemasukan / Masuk</div>
+        <div class="kpi-value text-green" id="kpi-in">Rp 0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Pengeluaran / Keluar</div>
+        <div class="kpi-value text-red" id="kpi-out">Rp 0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Tabungan & Aktiva</div>
+        <div class="kpi-value text-blue" id="kpi-saving">Rp 0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Saldo Bersih Keseluruhan</div>
+        <div class="kpi-value text-gold" id="kpi-net">Rp 0</div>
+      </div>
+    </div>
 
-          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-3 mb-2.5">Navigasi Utama</div>
-          <nav class="space-y-1.5" id="sidebarNav">
-            <button type="button" data-page="dashboard" onclick="navigateTo('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                </svg>
-              </span>
-              <span>Dashboard Utama</span>
-            </button>
-
-            <button type="button" data-page="simpanan" onclick="navigateTo('simpanan')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5zm0 0h-5a2 2 0 000 4h5" />
-                </svg>
-              </span>
-              <span>Simpanan (Cash & Rek)</span>
-            </button>
-
-            <button type="button" data-page="tabungan_nazila" onclick="navigateTo('tabungan_nazila')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </span>
-              <span>Tabungan Nazila Kartika</span>
-            </button>
-
-            <button type="button" data-page="mutasi_cash" onclick="navigateTo('mutasi_cash')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-              </span>
-              <span>Mutasi Cash Global</span>
-            </button>
-
-            <button type="button" data-page="mutasi_rekening" onclick="navigateTo('mutasi_rekening')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <rect x="2" y="5" width="20" height="14" rx="2.5" />
-                  <path stroke-linecap="round" d="M2 10h20M6 15h4" />
-                </svg>
-              </span>
-              <span>Mutasi Rekening Global</span>
-            </button>
-
-            <button type="button" data-page="rekap_piutang" onclick="navigateTo('rekap_piutang')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </span>
-              <span>Rekap Piutang</span>
-            </button>
-
-            <button type="button" data-page="rinci_piutang" onclick="navigateTo('rinci_piutang')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </span>
-              <span>Rinci Piutang Gabungan</span>
-            </button>
-
-            <button type="button" data-page="rinci_piutang_perorangan" onclick="navigateTo('rinci_piutang_perorangan')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-violet-500/20 text-violet-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </span>
-              <span>Rinci Piutang Per Orangan</span>
-            </button>
-
-            <button type="button" data-page="laporan" onclick="navigateTo('laporan')" class="nav-item w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left text-sm font-medium text-slate-200">
-              <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                </svg>
-              </span>
-              <span>Laporan Rekapan</span>
-            </button>
-          </nav>
-        </div>
-
-        <!-- Sidebar Footer Status -->
-        <div class="p-4 border-t border-white/10 bg-[#080c18]">
-          <div class="rounded-2xl p-3.5 bg-slate-900/90 border border-white/10">
-            <div class="flex items-center justify-between text-xs mb-1.5">
-              <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-                <span id="sidebarSyncDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
-                <span>Status Database</span>
-              </span>
-              <span id="sidebarSyncBadge" class="text-amber-400 font-bold text-[11px]">MEMUAT</span>
-            </div>
-            <div class="text-[11px] text-cyan-300 font-medium truncate" id="dbSourceLabel">./database_keuangan_sync.xlsx</div>
-            <div class="text-[10px] text-slate-400 mt-0.5 font-mono-num" id="lastSyncTimeLabel">Menunggu sinkronisasi...</div>
-            <div class="grid grid-cols-2 gap-1.5 mt-2.5">
-              <button type="button" onclick="forceCheckLiveSync(true); closeSidebar();" class="text-[11px] py-1.5 px-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/30 font-semibold transition">
-                Sync Ulang
-              </button>
-              <button type="button" onclick="handleLogout()" class="text-[11px] py-1.5 px-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-400/30 font-semibold transition">
-                Keluar
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Content Area (z-10) -->
-      <main id="mainWrapper" class="relative z-10 flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
-        <!-- Top Bar -->
-        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-7 pb-5 border-b border-white/10">
-          <div>
-            <div class="no-print flex flex-wrap items-center gap-2 mb-2">
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium">
-                <span>Adi Muhtar System</span>
-                <span>•</span>
-                <span id="topTotalBadge" class="font-mono-num font-bold text-white">Rp 0</span>
-              </div>
-
-              <!-- Live Sync Status Pill -->
-              <div id="liveSyncPill" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/35 text-amber-300 text-xs font-semibold">
-                <span class="relative flex h-2 w-2">
-                  <span id="liveSyncPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span id="liveSyncDot" class="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
-                </span>
-                <span id="liveSyncModeText">Mencari database_keuangan_sync.xlsx...</span>
-                <span class="text-white/30">|</span>
-                <span id="liveSyncClock" class="font-mono-num text-[11px]">--:--:--</span>
-              </div>
-            </div>
-            <h1 id="pageTitle" class="text-2xl sm:text-3xl font-extrabold text-aurora-shimmer tracking-tight">Dashboard Utama</h1>
-            <p id="pageSubtitle" class="text-sm text-slate-400 mt-1">Ringkasan eksekutif saldo kas, simpanan koperasi, rekening, dan piutang beredar.</p>
-          </div>
-
-          <!-- Top Action Buttons -->
-          <div id="topActionButtons" class="flex flex-wrap items-center gap-2.5 shrink-0">
-            <input type="file" id="universalExcelInput" accept=".xlsx,.xls" class="hidden" onchange="handleUniversalFileSelect(event)" />
-            <button type="button" onclick="triggerUniversalExcelSync()" id="btnConnectLiveFile" class="btn-luxury inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 hover:from-cyan-500/40 hover:to-indigo-500/40 border border-cyan-400/45 shadow-lg shadow-cyan-500/15 backdrop-blur-md">
-              <svg class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              <span>Pilih File database_keuangan_sync.xlsx</span>
-            </button>
-            <button type="button" onclick="window.print()" class="no-print btn-luxury inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-950 bg-cyan-400 hover:bg-cyan-300 shadow-lg shadow-cyan-400/20">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              <span>Cetak Halaman Ini</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Banner Panduan Jika Belum Terhubung di file:// HP/PC -->
-        <div id="syncGuideBanner" class="hidden mb-6 rounded-2xl p-4 sm:p-5 bg-amber-500/15 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="flex items-start gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <h4 class="text-sm font-bold text-amber-200">File Database Belum Terbaca Otomatis (Mode Penyimpanan Lokal HP/PC)</h4>
-              <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-                Karena dibuka langsung dari folder lokal (<code class="text-amber-300">file://</code>) tanpa server web, browser memblokir pembacaan otomatis demi keamanan. Silakan klik tombol di samping untuk memilih file <strong class="text-white">database_keuangan_sync.xlsx</strong> yang berada di folder yang sama, atau jalankan lewat server lokal (<code class="text-cyan-300">python -m http.server</code> / Hosting) agar langsung sinkron otomatis tanpa klik!
-              </p>
-            </div>
-          </div>
-          <button type="button" onclick="triggerUniversalExcelSync()" class="btn-luxury shrink-0 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/25">
-            Muat database_keuangan_sync.xlsx
-          </button>
-        </div>
-
-        <!-- Dynamic Page Container -->
-        <div id="pageContainer" class="page-view"></div>
-      </main>
+    <!-- Tabel Keseluruhan Data Real-Time -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px;">No</th>
+            <th>Sumber Sheet</th>
+            <th>Tanggal</th>
+            <th>Kategori / Akun</th>
+            <th>Keterangan / Uraian</th>
+            <th class="num">Masuk (Rp)</th>
+            <th class="num">Keluar (Rp)</th>
+            <th class="num">Saldo / Nominal (Rp)</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr>
+            <td colspan="8" style="text-align:center; padding:20px; color:#94a3b8;">
+              Memuat seluruh data dari file database...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-
-  <!-- Toast Notification Container -->
-  <div id="toastContainer" class="no-print fixed bottom-5 right-5 z-[60] flex flex-col gap-2 pointer-events-none"></div>
 
   <script>
-    // =========================================================================
-    // 1. PURE EXTERNAL DATABASE STATE (NO HARDCODED DATA IN BODY HTML)
-    // =========================================================================
-    const EXCEL_FILENAME = 'database_keuangan_sync.xlsx';
-    const EXCEL_RELATIVE_PATH = './database_keuangan_sync.xlsx';
+    // Konfigurasi nama file database default di repository/folder yang sama
+    const DEFAULT_DB_FILES = ['database.xlsx', 'data.xlsx', 'keuangan.xlsx'];
+    let ALL_RECORDS = []; // Kosong total - 100% diisi dari file eksternal
 
-    let dbState = {
-      cash: [],
-      rekening: [],
-      piutang: [],
-      koperasi: 0,
-      nazila: []
-    };
-
-    let currentPage = 'dashboard';
-    let barChartInstance = null;
-    let doughnutChartInstance = null;
-
-    let liveSyncState = {
-      mode: 'pending',
-      fileHandle: null,
-      lastModified: null,
-      lastSignature: null,
-      isLoaded: false
-    };
-
-    let filterState = {
-      cashSearch: '',
-      rekSearch: '',
-      nazilaSearch: '',
-      piutangSearch: '',
-      piutangBorrower: 'ALL',
-      peroranganSelected: ''
-    };
-
-    // =========================================================================
-    // 2. SESSION AUTHENTICATION (Persistent across page refreshes)
-    // =========================================================================
-    window.addEventListener('DOMContentLoaded', () => {
-      const isLogged = sessionStorage.getItem('finflow_logged_in');
-      if (isLogged === 'true') {
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('mainAppContainer').classList.remove('hidden');
-        recalculateRunningBalances();
-        renderCurrentPage();
-        startRealtimeSyncLoop();
+    // 1. Auto Fullscreen saat halaman dibuka & saat klik pertama
+    function enterFullscreen() {
+      const el = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (el.requestFullscreen) {
+          el.requestFullscreen().catch(() => {});
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+          el.msRequestFullscreen();
+        }
       }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        enterFullscreen();
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      enterFullscreen();
+      updatePrintDate();
+      syncDatabase();
     });
 
-    function handleLogin(e) {
-      e.preventDefault();
-      const pwd = document.getElementById('loginPasswordInput').value;
-      if (pwd === 'adim') {
-        sessionStorage.setItem('finflow_logged_in', 'true');
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('mainAppContainer').classList.remove('hidden');
-        showToast('Selamat datang, Bang Adi!');
-        recalculateRunningBalances();
-        renderCurrentPage();
-        startRealtimeSyncLoop();
-      } else {
-        showToast('Password salah! Silakan coba lagi.', 'error');
-        document.getElementById('loginPasswordInput').value = '';
-      }
+    // Cadangan pemicu fullscreen pada sentuhan/klik pertama jika browser memblokir autoplay fullscreen
+    document.addEventListener('click', function autoFsOnce() {
+      enterFullscreen();
+      document.removeEventListener('click', autoFsOnce);
+    }, { once: true });
+
+    // Format Tanggal Cetak Indonesia
+    function updatePrintDate() {
+      const opsi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('print-date').textContent = new Date().toLocaleDateString('id-ID', opsi);
     }
 
-    function handleLogout() {
-      sessionStorage.removeItem('finflow_logged_in');
-      closeSidebar();
-      document.getElementById('mainAppContainer').classList.add('hidden');
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('loginPasswordInput').value = '';
-      showToast('Anda telah keluar dari sistem.');
+    // Format Rupiah
+    function formatRp(angka) {
+      const num = Number(angka) || 0;
+      return 'Rp ' + num.toLocaleString('id-ID');
     }
 
-    // =========================================================================
-    // 3. FORMATTING, DATE SORTING HELPERS & RUNNING BALANCE CALCULATION
-    // =========================================================================
-    function formatRupiah(amount) {
-      const num = Number(amount) || 0;
-      const isNegative = num < 0;
-      const absFormatted = Math.abs(Math.round(num)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      return (isNegative ? '-Rp ' : 'Rp ') + absFormatted;
-    }
-
-    function escapeHtml(text) {
-      const str = String(text ?? '');
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    function getDateTimestamp(tglStr) {
-      if (!tglStr) return 0;
-      const str = String(tglStr).trim();
-      const iso = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-      if (iso) {
-        return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).getTime() || 0;
-      }
-      const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-      if (dmy) {
-        return new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1])).getTime() || 0;
-      }
-      const parsed = Date.parse(str);
-      return isNaN(parsed) ? 0 : parsed;
-    }
-
-    function recalculateRunningBalances() {
-      let cashBal = 0;
-      dbState.cash.forEach((item, idx) => {
-        item.no = idx + 1;
-        item.masuk = Number(item.masuk) || 0;
-        item.keluar = Number(item.keluar) || 0;
-        cashBal += item.masuk - item.keluar;
-        item.saldo = cashBal;
-      });
-
-      let rekBal = 0;
-      dbState.rekening.forEach((item, idx) => {
-        item.no = idx + 1;
-        item.masuk = Number(item.masuk) || 0;
-        item.keluar = Number(item.keluar) || 0;
-        rekBal += item.masuk - item.keluar;
-        item.saldo = rekBal;
-      });
-
-      let nazilaBal = 0;
-      dbState.nazila.forEach((item, idx) => {
-        item.no = idx + 1;
-        item.masuk = Number(item.masuk) || 0;
-        item.keluar = Number(item.keluar) || 0;
-        nazilaBal += item.masuk - item.keluar;
-        item.saldo = nazilaBal;
-      });
-    }
-
-    function getMetrics() {
-      recalculateRunningBalances();
-
-      const saldoCash = dbState.cash.length > 0 ? dbState.cash[dbState.cash.length - 1].saldo : 0;
-      const saldoRekening = dbState.rekening.length > 0 ? dbState.rekening[dbState.rekening.length - 1].saldo : 0;
-      const saldoKoperasi = Number(dbState.koperasi) || 0;
-      const saldoNazila = dbState.nazila.length > 0 ? dbState.nazila[dbState.nazila.length - 1].saldo : 0;
-
-      // Total Simpanan: Cash + Rekening saja
-      const totalSimpanan = saldoCash + saldoRekening;
-
-      const borrowerMap = new Map();
-      const detailedPiutang = dbState.piutang.map((row, index) => {
-        const nama = (row.nama || 'Tanpa Nama').trim();
-        const pinjam = Number(row.pinjam) || 0;
-        const bayar = Number(row.bayar) || 0;
-
-        if (!borrowerMap.has(nama)) {
-          borrowerMap.set(nama, { nama, totalPinjam: 0, totalBayar: 0, sisa: 0, count: 0 });
-        }
-        const entry = borrowerMap.get(nama);
-        entry.totalPinjam += pinjam;
-        entry.totalBayar += bayar;
-        entry.sisa = entry.totalPinjam - entry.totalBayar;
-        entry.count += 1;
-
-        return {
-          no: index + 1,
-          nama,
-          tgl: row.tgl || '-',
-          keterangan: row.keterangan || '-',
-          pinjam,
-          bayar,
-          sisaAkhir: entry.sisa
-        };
-      });
-
-      const borrowerSummary = Array.from(borrowerMap.values());
-      const totalPiutang = borrowerSummary.reduce((acc, b) => acc + Math.max(0, b.sisa), 0);
-      const activeBorrowers = borrowerSummary.filter(b => b.sisa > 0).length;
-
-      // Total Aktiva = Total Simpanan (Cash + Rekening) + Saldo Koperasi + Piutang Beredar
-      const totalAktiva = totalSimpanan + saldoKoperasi + totalPiutang;
-      const totalTransaksi = dbState.cash.length + dbState.rekening.length + dbState.piutang.length + dbState.nazila.length;
-
-      return {
-        saldoCash,
-        saldoRekening,
-        saldoKoperasi,
-        saldoNazila,
-        totalSimpanan,
-        totalPiutang,
-        totalAktiva,
-        borrowerSummary,
-        detailedPiutang,
-        activeBorrowers,
-        totalBorrowers: borrowerSummary.length,
-        totalTransaksi
-      };
-    }
-
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      if (!container) return;
-      const toast = document.createElement('div');
-      const accentBorder = type === 'success'
-        ? 'border-emerald-400/40 bg-slate-900/95 text-emerald-300'
-        : type === 'error'
-          ? 'border-rose-400/40 bg-slate-900/95 text-rose-300'
-          : 'border-cyan-400/40 bg-slate-900/95 text-cyan-300';
-
-      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border ${accentBorder} backdrop-blur-xl shadow-2xl text-sm font-medium transition-all duration-300`;
-      toast.innerHTML = `
-        <span class="w-2.5 h-2.5 rounded-full ${type === 'success' ? 'bg-emerald-400' : type === 'error' ? 'bg-rose-400' : 'bg-cyan-400'}"></span>
-        <span>${escapeHtml(message)}</span>
-      `;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(8px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 3400);
-    }
-
-    // =========================================================================
-    // 4. NAVIGATION & RESPONSIVE SIDEBAR
-    // =========================================================================
-    const pageMeta = {
-      dashboard: { title: 'Dashboard Utama', subtitle: 'Ringkasan eksekutif saldo saat ini, komposisi aktiva, dan statistik seluruh transaksi.' },
-      simpanan: { title: 'Simpanan (Cash & Rek)', subtitle: 'Rincian posisi saldo likuid pada Tabunganku Cash, Tabunganku Rekening, dan Tabungan Koperasi.' },
-      tabungan_nazila: { title: 'Tabungan Nazila Kartika', subtitle: 'Buku catatan mutasi masuk, keluar, dan saldo akhir tabungan khusus Nazila Kartika (Sheet: Tabungan_Nazila).' },
-      mutasi_cash: { title: 'Mutasi Cash Global', subtitle: 'Buku besar arus kas masuk & keluar tunai fisik (diurutkan tanggal terbaru paling atas).' },
-      mutasi_rekening: { title: 'Mutasi Rekening Global', subtitle: 'Buku besar transaksi rekening bank (tanggal terbaru di atas, nilai 0 disembunyikan).' },
-      rekap_piutang: { title: 'Rekap Piutang', subtitle: 'Daftar ringkas posisi piutang seluruh peminjam lengkap dengan status aktif & lunas.' },
-      rinci_piutang: { title: 'Rinci Piutang Gabungan', subtitle: 'Satu sheet terpadu riwayat pinjaman dan angsuran lintas peminjam dengan filter instan.' },
-      rinci_piutang_perorangan: { title: 'Rinci Piutang Per Orangan', subtitle: 'Detail riwayat pinjaman, angsuran, dan sisa tanggungan khusus per masing-masing peminjam.' },
-      laporan: { title: 'Laporan Rekapan', subtitle: 'Neraca keuangan eksekutif siap cetak serta ekspor Master Excel multi-sheet.' }
-    };
-
-    function openSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      sidebar.classList.remove('-translate-x-full');
-      overlay.classList.remove('hidden');
-    }
-
-    function closeSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      sidebar.classList.add('-translate-x-full');
-      overlay.classList.add('hidden');
-    }
-
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar.classList.contains('-translate-x-full')) {
-        openSidebar();
-      } else {
-        closeSidebar();
-      }
-    }
-
-    function navigateTo(pageKey) {
-      currentPage = pageKey;
-      document.querySelectorAll('#sidebarNav .nav-item').forEach(btn => {
-        if (btn.dataset.page === pageKey) btn.classList.add('active');
-        else btn.classList.remove('active');
-      });
-
-      const meta = pageMeta[pageKey] || pageMeta.dashboard;
-      document.getElementById('pageTitle').textContent = meta.title;
-      document.getElementById('pageSubtitle').textContent = meta.subtitle;
-
-      if (window.innerWidth < 1024) {
-        closeSidebar();
-      }
-
-      renderCurrentPage();
-    }
-
-    // =========================================================================
-    // 5. PAGE RENDERERS (9 PAGES)
-    // =========================================================================
-    function renderCurrentPage() {
-      const m = getMetrics();
-      document.getElementById('topTotalBadge').textContent = formatRupiah(m.totalAktiva);
-
-      const container = document.getElementById('pageContainer');
-      container.classList.remove('page-view');
-      void container.offsetWidth;
-      container.classList.add('page-view');
-
-      const printHeaderHtml = `
-        <div class="print-header-title">
-          <h2>SISTEM KEUANGAN TERPADU — BANG ADI MUHTAR</h2>
-          <p><strong>Laporan:</strong> ${pageMeta[currentPage].title} | <strong>Tanggal Cetak:</strong> ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}</p>
-        </div>
-      `;
-
-      let pageHtml = '';
-      switch (currentPage) {
-        case 'dashboard': pageHtml = getDashboardHtml(m); break;
-        case 'simpanan': pageHtml = getSimpananHtml(m); break;
-        case 'tabungan_nazila': pageHtml = getTabunganNazilaHtml(m); break;
-        case 'mutasi_cash': pageHtml = getMutasiCashHtml(m); break;
-        case 'mutasi_rekening': pageHtml = getMutasiRekeningHtml(m); break;
-        case 'rekap_piutang': pageHtml = getRekapPiutangHtml(m); break;
-        case 'rinci_piutang': pageHtml = getRinciPiutangHtml(m); break;
-        case 'rinci_piutang_perorangan': pageHtml = getRinciPiutangPerOranganHtml(m); break;
-        case 'laporan': pageHtml = getLaporanHtml(m); break;
-      }
-
-      container.innerHTML = printHeaderHtml + pageHtml;
-      attach3DTiltEffects();
-      if (currentPage === 'dashboard') renderDashboardCharts(m);
-    }
-
-    function attach3DTiltEffects() {
-      document.querySelectorAll('.glass-card, .hero-glass, .hero-glass-rose').forEach(card => {
-        if (card.dataset.tiltBound === '1') return;
-        card.dataset.tiltBound = '1';
-
-        card.addEventListener('mousemove', e => {
-          const rect = card.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          card.style.setProperty('--mouse-x', `${x}px`);
-          card.style.setProperty('--mouse-y', `${y}px`);
-
-          if (card.classList.contains('glass-card-hover')) {
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -4.5;
-            const rotateY = ((x - centerX) / centerX) * 4.5;
-            card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
-          }
-        });
-
-        card.addEventListener('mouseleave', () => {
-          if (card.classList.contains('glass-card-hover')) card.style.transform = '';
-        });
-      });
-    }
-
-    // --- PAGE 1: DASHBOARD UTAMA ---
-    function getDashboardHtml(m) {
-      const lastCash = dbState.cash[dbState.cash.length - 1];
-      const validRek = dbState.rekening.filter(r => r.masuk > 0 || r.keluar > 0);
-      const lastRek = validRek[validRek.length - 1] || dbState.rekening[dbState.rekening.length - 1];
-      const lastPiutang = dbState.piutang[dbState.piutang.length - 1];
-      const lastNazila = dbState.nazila[dbState.nazila.length - 1];
-
-      return `
-        <div class="hero-glass rounded-3xl p-6 sm:p-8 mb-7 relative overflow-hidden">
-          <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-center relative z-10">
-            <div class="xl:col-span-7">
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-400/15 border border-cyan-400/35 text-cyan-300 text-xs font-bold mb-3 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-                SALDO SAAT INI PALING BESAR & TOTAL AKTIVA
-              </div>
-              <div class="text-xs sm:text-sm uppercase tracking-wider text-slate-300 font-semibold">Total Keseluruhan Aktiva (Likuid + Piutang)</div>
-              <div class="font-mono-num text-4xl sm:text-5xl lg:text-6xl font-extrabold text-aurora-shimmer tracking-tight mt-1.5 drop-shadow-[0_6px_24px_rgba(6,182,212,0.32)]">
-                ${formatRupiah(m.totalAktiva)}
-              </div>
-              <div class="mt-4 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
-                <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/35 text-emerald-200">
-                  Total Simpanan (Cash + Rekening): <strong class="font-mono-num text-emerald-300">${formatRupiah(m.totalSimpanan)}</strong>
-                </span>
-                <button type="button" onclick="navigateTo('tabungan_nazila')" class="px-3.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/35 text-rose-200 transition cursor-pointer">
-                  Tabungan Nazila: <strong class="font-mono-num text-rose-300">${formatRupiah(m.saldoNazila)}</strong>
-                </button>
-              </div>
-            </div>
-
-            <div class="xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2.5">
-              <div class="p-3.5 rounded-2xl bg-slate-950/65 border border-cyan-400/20 hover:border-cyan-400/50 transition flex items-center justify-between">
-                <div>
-                  <div class="text-xs text-slate-400">Cash Tunai (${dbState.cash.length} mutasi)</div>
-                  <div class="font-mono-num text-base sm:text-lg font-bold text-cyan-400 mt-0.5">${formatRupiah(m.saldoCash)}</div>
-                </div>
-                <span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-xs font-bold">Cash</span>
-              </div>
-
-              <div class="p-3.5 rounded-2xl bg-slate-950/65 border border-indigo-400/20 hover:border-indigo-400/50 transition flex items-center justify-between">
-                <div>
-                  <div class="text-xs text-slate-400">Rekening Bank (${validRek.length} mutasi)</div>
-                  <div class="font-mono-num text-base sm:text-lg font-bold text-indigo-400 mt-0.5">${formatRupiah(m.saldoRekening)}</div>
-                </div>
-                <span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-bold">Rekening</span>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2.5">
-                <div class="p-3 rounded-2xl bg-slate-950/65 border border-emerald-400/20 hover:border-emerald-400/50 transition">
-                  <div class="text-[11px] text-slate-400">Simpanan Koperasi</div>
-                  <div class="font-mono-num text-sm sm:text-base font-bold text-emerald-400 mt-0.5">${formatRupiah(m.saldoKoperasi)}</div>
-                </div>
-                <div class="p-3 rounded-2xl bg-slate-950/65 border border-amber-400/20 hover:border-amber-400/50 transition">
-                  <div class="text-[11px] text-slate-400">Piutang Beredar</div>
-                  <div class="font-mono-num text-sm sm:text-base font-bold text-amber-400 mt-0.5">${formatRupiah(m.totalPiutang)}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-7">
-          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-cyan-400">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Keseluruhan Aktiva</span>
-              <span class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              </span>
-            </div>
-            <div class="font-mono-num text-2xl font-extrabold text-white">${formatRupiah(m.totalAktiva)}</div>
-            <p class="text-xs text-cyan-300 mt-2">Simpanan + Koperasi + Piutang</p>
-          </div>
-
-          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-emerald-400">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Simpanan (Cash + Rek)</span>
-              <span class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-              </span>
-            </div>
-            <div class="font-mono-num text-2xl font-extrabold text-emerald-400">${formatRupiah(m.totalSimpanan)}</div>
-            <p class="text-xs text-slate-400 mt-2">Cash + Rekening saja</p>
-          </div>
-
-          <div onclick="navigateTo('tabungan_nazila')" class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-rose-400 cursor-pointer">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tabungan Nazila Kartika</span>
-              <span class="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-              </span>
-            </div>
-            <div class="font-mono-num text-2xl font-extrabold text-rose-400">${formatRupiah(m.saldoNazila)}</div>
-            <p class="text-xs text-rose-300/80 mt-2">${dbState.nazila.length} transaksi • Klik lihat detail</p>
-          </div>
-
-          <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-amber-400">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Piutang Beredar</span>
-              <span class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
-              </span>
-            </div>
-            <div class="font-mono-num text-2xl font-extrabold text-amber-400">${formatRupiah(m.totalPiutang)}</div>
-            <p class="text-xs text-slate-400 mt-2">${m.activeBorrowers} peminjam aktif (${dbState.piutang.length} mutasi)</p>
-          </div>
-        </div>
-
-        <div class="no-print grid grid-cols-1 lg:grid-cols-12 gap-6 mb-7">
-          <div class="glass-card rounded-3xl p-6 lg:col-span-7">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="text-base font-bold text-white">Komposisi Aktiva Keuangan</h3>
-                <p class="text-xs text-slate-400">Perbandingan Tabunganku Cash, Rekening, Koperasi & Piutang</p>
-              </div>
-              <span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-semibold">Bar Chart</span>
-            </div>
-            <div class="relative h-72 w-full"><canvas id="assetBarChart"></canvas></div>
-          </div>
-
-          <div class="glass-card rounded-3xl p-6 lg:col-span-5">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="text-base font-bold text-white">Rasio Simpanan vs Piutang</h3>
-                <p class="text-xs text-slate-400">Distribusi likuiditas terhadap total aktiva</p>
-              </div>
-              <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 text-xs font-semibold">Donut Ratio</span>
-            </div>
-            <div class="relative h-72 w-full flex items-center justify-center"><canvas id="ratioDoughnutChart"></canvas></div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
-            <div>
-              <h3 class="text-base font-bold text-white">Ringkasan Transaksi Terakhir Lintas Sumber</h3>
-              <p class="text-xs text-slate-400">Snapshot mutasi terbaru dari Mutasi Cash, Mutasi Rekening, Tabungan Nazila, dan Piutang</p>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3 px-4">Sumber Sheet</th>
-                  <th class="py-3 px-4">Tanggal</th>
-                  <th class="py-3 px-4">Rincian / Keterangan</th>
-                  <th class="py-3 px-4 text-right">Nominal Transaksi</th>
-                  <th class="py-3 px-4 text-right">Posisi Saldo / Sisa</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                ${lastCash ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-xs font-semibold">Mutasi Cash (#${lastCash.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastCash.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastCash.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastCash.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastCash.masuk > 0 ? '+' + formatRupiah(lastCash.masuk) : '-' + formatRupiah(lastCash.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-cyan-300">${formatRupiah(lastCash.saldo)}</td></tr>` : ''}
-                ${lastRek ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-semibold">Mutasi Rekening (#${lastRek.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastRek.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastRek.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastRek.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastRek.masuk > 0 ? '+' + formatRupiah(lastRek.masuk) : '-' + formatRupiah(lastRek.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-indigo-300">${formatRupiah(lastRek.saldo)}</td></tr>` : ''}
-                ${lastNazila ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-xs font-semibold">Tabungan Nazila (#${lastNazila.no})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastNazila.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastNazila.rincian)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastNazila.masuk > 0 ? 'text-emerald-400' : 'text-rose-400'}">${lastNazila.masuk > 0 ? '+' + formatRupiah(lastNazila.masuk) : '-' + formatRupiah(lastNazila.keluar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-rose-300">${formatRupiah(lastNazila.saldo)}</td></tr>` : ''}
-                ${lastPiutang ? `<tr class="hover:bg-white/[0.03]"><td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-semibold">Piutang (${escapeHtml(lastPiutang.nama)})</span></td><td class="py-3.5 px-4 font-mono-num text-slate-300">${escapeHtml(lastPiutang.tgl)}</td><td class="py-3.5 px-4 text-white font-medium">${escapeHtml(lastPiutang.keterangan)}</td><td class="py-3.5 px-4 text-right font-mono-num ${lastPiutang.pinjam > 0 ? 'text-amber-400' : 'text-emerald-400'}">${lastPiutang.pinjam > 0 ? 'Pinjam ' + formatRupiah(lastPiutang.pinjam) : 'Bayar ' + formatRupiah(lastPiutang.bayar)}</td><td class="py-3.5 px-4 text-right font-mono-num font-bold text-amber-300">${formatRupiah(m.totalPiutang)}</td></tr>` : ''}
-                ${!lastCash && !lastRek && !lastPiutang && !lastNazila ? `<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400 text-sm">Belum ada data terbaca dari <code class="text-cyan-300">database_keuangan_sync.xlsx</code>. Silakan muat file Excel atau jalankan dari folder server.</td></tr>` : ''}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderDashboardCharts(m) {
-      const barCanvas = document.getElementById('assetBarChart');
-      const doughnutCanvas = document.getElementById('ratioDoughnutChart');
-      if (!barCanvas || !doughnutCanvas) return;
-
-      if (barChartInstance) barChartInstance.destroy();
-      if (doughnutChartInstance) doughnutChartInstance.destroy();
-
-      barChartInstance = new Chart(barCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: ['Tabunganku Cash', 'Tabunganku Rekening', 'Tabungan Koperasi', 'Piutang Beredar'],
-          datasets: [{
-            label: 'Nominal (Rp)',
-            data: [m.saldoCash, m.saldoRekening, m.saldoKoperasi, m.totalPiutang],
-            backgroundColor: ['rgba(6, 182, 212, 0.78)', 'rgba(99, 102, 241, 0.78)', 'rgba(16, 185, 129, 0.78)', 'rgba(245, 158, 11, 0.78)'],
-            borderColor: ['#06b6d4', '#6366f1', '#10b981', '#f59e0b'],
-            borderWidth: 1.5,
-            borderRadius: 10
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#f8fafc',
-              bodyColor: '#38bdf8',
-              borderColor: 'rgba(255,255,255,0.12)',
-              borderWidth: 1,
-              callbacks: { label: ctx => ' ' + formatRupiah(ctx.parsed.y) }
-            }
-          },
-          scales: {
-            x: { ticks: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 11 } }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 11 }, callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' }, grid: { color: 'rgba(255,255,255,0.06)' } }
-          }
-        }
-      });
-
-      const total = m.totalSimpanan + m.totalPiutang || 1;
-      const pctSimpanan = ((m.totalSimpanan / total) * 100).toFixed(1);
-      const pctPiutang = ((m.totalPiutang / total) * 100).toFixed(1);
-
-      doughnutChartInstance = new Chart(doughnutCanvas.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-          labels: [`Total Simpanan (${pctSimpanan}%)`, `Piutang Beredar (${pctPiutang}%)`],
-          datasets: [{
-            data: [m.totalSimpanan, m.totalPiutang],
-            backgroundColor: ['rgba(16, 185, 129, 0.85)', 'rgba(99, 102, 241, 0.85)'],
-            borderColor: ['#10b981', '#6366f1'],
-            borderWidth: 2,
-            hoverOffset: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '66%',
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 16, font: { family: 'Plus Jakarta Sans', size: 12 } } },
-            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.95)', callbacks: { label: ctx => ` ${ctx.label}: ${formatRupiah(ctx.parsed)}` } }
-          }
-        }
-      });
-    }
-
-    // --- PAGE 2: SIMPANAN (CASH & REK) ---
-    function getSimpananHtml(m) {
-      const pctCash = m.totalSimpanan ? ((m.saldoCash / m.totalSimpanan) * 100).toFixed(1) : '0.0';
-      const pctRek = m.totalSimpanan ? ((m.saldoRekening / m.totalSimpanan) * 100).toFixed(1) : '0.0';
-
-      return `
-        <div class="hero-glass rounded-3xl p-6 sm:p-8 mb-7">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Total Keseluruhan Simpanan (Cash + Rekening)</span>
-              <div class="font-mono-num text-4xl sm:text-5xl font-extrabold text-white mt-1.5">${formatRupiah(m.totalSimpanan)}</div>
-              <p class="text-xs sm:text-sm text-slate-300 mt-2">Akumulasi saldo akhir dari Tabunganku Cash dan Tabunganku Rekening.</p>
-            </div>
-            <div class="no-print flex flex-wrap gap-2">
-              <button type="button" onclick="navigateTo('mutasi_cash')" class="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/35 text-cyan-200 text-xs font-semibold transition">Lihat Buku Cash</button>
-              <button type="button" onclick="navigateTo('mutasi_rekening')" class="px-4 py-2.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/35 text-indigo-200 text-xs font-semibold transition">Lihat Buku Rekening</button>
-              <button type="button" onclick="navigateTo('tabungan_nazila')" class="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/35 text-rose-200 text-xs font-semibold transition">Tabungan Nazila</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6 mb-7">
-          <h3 class="text-lg font-bold text-white mb-1">Rincian Pos Dana Simpanan</h3>
-          <p class="text-xs text-slate-400 mb-5">Sinkron langsung dengan sheet Mutasi_Cash_Rekening, Simpanan_Koperasi, dan Tabungan_Nazila</p>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3.5 px-4">No</th>
-                  <th class="py-3.5 px-4">Pos Dana Simpanan</th>
-                  <th class="py-3.5 px-4">Sumber Database</th>
-                  <th class="py-3.5 px-4 text-right">Porsi (%)</th>
-                  <th class="py-3.5 px-4 text-right">Saldo Saat Ini</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                <tr class="hover:bg-white/[0.03]">
-                  <td class="py-4 px-4 font-mono-num text-slate-400">1</td>
-                  <td class="py-4 px-4 font-bold text-white flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-cyan-400"></span>Tabunganku Cash (Tunai)</td>
-                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Mutasi_Cash_Rekening (Cash)</code></td>
-                  <td class="py-4 px-4 text-right font-mono-num text-cyan-300">${pctCash}%</td>
-                  <td class="py-4 px-4 text-right font-mono-num font-bold text-cyan-400 text-base">${formatRupiah(m.saldoCash)}</td>
-                </tr>
-                <tr class="hover:bg-white/[0.03]">
-                  <td class="py-4 px-4 font-mono-num text-slate-400">2</td>
-                  <td class="py-4 px-4 font-bold text-white flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-indigo-400"></span>Tabunganku Rekening (Bank)</td>
-                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Mutasi_Cash_Rekening (Rekening)</code></td>
-                  <td class="py-4 px-4 text-right font-mono-num text-indigo-300">${pctRek}%</td>
-                  <td class="py-4 px-4 text-right font-mono-num font-bold text-indigo-400 text-base">${formatRupiah(m.saldoRekening)}</td>
-                </tr>
-                <tr class="hover:bg-white/[0.03]">
-                  <td class="py-4 px-4 font-mono-num text-slate-400">3</td>
-                  <td class="py-4 px-4 font-bold text-white flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span>Tabungan Koperasi (Pos Terpisah)</td>
-                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Simpanan_Koperasi</code></td>
-                  <td class="py-4 px-4 text-right font-mono-num text-slate-400">-</td>
-                  <td class="py-4 px-4 text-right font-mono-num font-bold text-emerald-400 text-base">${formatRupiah(m.saldoKoperasi)}</td>
-                </tr>
-                <tr onclick="navigateTo('tabungan_nazila')" class="hover:bg-white/[0.04] cursor-pointer">
-                  <td class="py-4 px-4 font-mono-num text-slate-400">4</td>
-                  <td class="py-4 px-4 font-bold text-rose-300 flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-rose-400"></span>Tabungan Nazila Kartika (Pos Terpisah)</td>
-                  <td class="py-4 px-4 text-slate-300 text-xs"><code class="px-2 py-1 rounded bg-white/5">Tabungan_Nazila</code></td>
-                  <td class="py-4 px-4 text-right font-mono-num text-slate-400">-</td>
-                  <td class="py-4 px-4 text-right font-mono-num font-bold text-rose-400 text-base">${formatRupiah(m.saldoNazila)}</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr class="bg-emerald-500/10 border-t-2 border-emerald-400/40">
-                  <td colspan="3" class="py-4 px-4 font-extrabold text-white text-sm uppercase tracking-wider">Total Simpanan (Cash + Rekening)</td>
-                  <td class="py-4 px-4 text-right font-mono-num font-bold text-emerald-300">100.0%</td>
-                  <td class="py-4 px-4 text-right font-mono-num font-extrabold text-emerald-400 text-lg">${formatRupiah(m.totalSimpanan)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PAGE NEW: TABUNGAN NAZILA KARTIKA ---
-    function getTabunganNazilaHtml(m) {
-      const totalMasuk = dbState.nazila.reduce((s, r) => s + r.masuk, 0);
-      const totalKeluar = dbState.nazila.reduce((s, r) => s + r.keluar, 0);
-      const q = filterState.nazilaSearch.toLowerCase();
-
-      const sortedNazila = [...dbState.nazila].sort((a, b) => {
-        const diff = getDateTimestamp(b.tgl) - getDateTimestamp(a.tgl);
-        return diff !== 0 ? diff : b.no - a.no;
-      });
-
-      const filtered = sortedNazila.filter(r =>
-        r.rincian.toLowerCase().includes(q) ||
-        r.tgl.toLowerCase().includes(q) ||
-        String(r.no).includes(q)
-      );
-
-      return `
-        <div class="hero-glass-rose rounded-3xl p-6 sm:p-8 mb-7">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold mb-2.5">
-                <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
-                SHEET: Tabungan_Nazila • REALTIME SYNC
-              </div>
-              <div class="text-xs sm:text-sm uppercase tracking-wider text-slate-300 font-semibold">Saldo Akhir Tabungan Nazila Kartika</div>
-              <div class="font-mono-num text-4xl sm:text-5xl font-extrabold text-white mt-1.5 drop-shadow-[0_6px_24px_rgba(244,63,94,0.35)]">
-                ${formatRupiah(m.saldoNazila)}
-              </div>
-              <p class="text-xs sm:text-sm text-rose-200/80 mt-2">Total ${dbState.nazila.length} riwayat transaksi tabungan tercatat langsung dari database Excel.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3 sm:min-w-[300px]">
-              <div class="p-4 rounded-2xl bg-slate-950/65 border border-emerald-400/25">
-                <div class="text-[11px] text-slate-400 uppercase font-semibold">Total Masuk</div>
-                <div class="font-mono-num text-base sm:text-lg font-bold text-emerald-400 mt-1">${formatRupiah(totalMasuk)}</div>
-              </div>
-              <div class="p-4 rounded-2xl bg-slate-950/65 border border-rose-400/25">
-                <div class="text-[11px] text-slate-400 uppercase font-semibold">Total Keluar</div>
-                <div class="font-mono-num text-base sm:text-lg font-bold text-rose-400 mt-1">${formatRupiah(totalKeluar)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6">
-          <div class="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-            <div>
-              <h3 class="text-base font-bold text-white">Buku Mutasi Tabungan Nazila Kartika (${filtered.length} baris • Terbaru Paling Atas)</h3>
-              <p class="text-xs text-slate-400">Menampilkan rincian pemasukan, pengambilan, dan sisa saldo berjalan secara realtime</p>
-            </div>
-            <input type="text" value="${escapeHtml(filterState.nazilaSearch)}" oninput="filterState.nazilaSearch = this.value; renderCurrentPage();" placeholder="Cari tanggal atau rincian tabungan..." class="glass-input w-full sm:w-72 px-4 py-2 rounded-xl text-sm" />
-          </div>
-
-          <div class="overflow-x-auto max-h-[580px]">
-            <table class="w-full text-left border-collapse">
-              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3.5 px-3">No</th>
-                  <th class="py-3.5 px-3">Tanggal</th>
-                  <th class="py-3.5 px-3">Rincian Transaksi</th>
-                  <th class="py-3.5 px-3 text-right">Jumlah Masuk</th>
-                  <th class="py-3.5 px-3 text-right">Jumlah Keluar</th>
-                  <th class="py-3.5 px-3 text-right">Saldo</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                ${filtered.length > 0 ? filtered.map(r => `
-                  <tr class="hover:bg-white/[0.03] transition">
-                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
-                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
-                    <td class="py-3 px-3 text-white font-medium">${escapeHtml(r.rincian)}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.masuk > 0 ? formatRupiah(r.masuk) : '-'}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-rose-400 whitespace-nowrap">${r.keluar > 0 ? formatRupiah(r.keluar) : '-'}</td>
-                    <td class="py-3 px-3 text-right font-mono-num font-bold text-rose-300 whitespace-nowrap">${formatRupiah(r.saldo)}</td>
-                  </tr>
-                `).join('') : `
-                  <tr>
-                    <td colspan="6" class="py-8 px-4 text-center text-slate-400 text-sm">Belum ada data pada sheet <code class="text-rose-300">Tabungan_Nazila</code> atau tidak ditemukan hasil pencarian.</td>
-                  </tr>
-                `}
-              </tbody>
-              <tfoot>
-                <tr class="bg-rose-500/10 border-t-2 border-rose-400/40 font-bold">
-                  <td colspan="3" class="py-4 px-3 text-white uppercase text-xs tracking-wider">Total Akumulasi Tabungan Nazila Kartika</td>
-                  <td class="py-4 px-3 text-right font-mono-num text-emerald-400">${formatRupiah(totalMasuk)}</td>
-                  <td class="py-4 px-3 text-right font-mono-num text-rose-400">${formatRupiah(totalKeluar)}</td>
-                  <td class="py-4 px-3 text-right font-mono-num text-rose-300 text-base">${formatRupiah(m.saldoNazila)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PAGE 3: MUTASI CASH GLOBAL ---
-    function getMutasiCashHtml(m) {
-      const totalMasuk = dbState.cash.reduce((s, r) => s + r.masuk, 0);
-      const totalKeluar = dbState.cash.reduce((s, r) => s + r.keluar, 0);
-      const q = filterState.cashSearch.toLowerCase();
-
-      const sortedCash = [...dbState.cash].sort((a, b) => {
-        const diff = getDateTimestamp(b.tgl) - getDateTimestamp(a.tgl);
-        return diff !== 0 ? diff : b.no - a.no;
-      });
-
-      const filtered = sortedCash.filter(r =>
-        r.rincian.toLowerCase().includes(q) ||
-        r.tgl.toLowerCase().includes(q) ||
-        String(r.no).includes(q)
-      );
-
-      return `
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Cash Masuk</div>
-            <div class="font-mono-num text-xl font-bold text-emerald-400 mt-1">${formatRupiah(totalMasuk)}</div>
-          </div>
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Cash Keluar</div>
-            <div class="font-mono-num text-xl font-bold text-rose-400 mt-1">${formatRupiah(totalKeluar)}</div>
-          </div>
-          <div class="glass-card rounded-2xl p-4 border border-cyan-400/30">
-            <div class="text-xs text-cyan-300">Sisa Saldo Cash Berjalan</div>
-            <div class="font-mono-num text-xl font-extrabold text-cyan-400 mt-1">${formatRupiah(m.saldoCash)}</div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6">
-          <div class="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-            <div>
-              <h3 class="text-base font-bold text-white">Buku Mutasi Cash Tunai (${filtered.length} baris • Terbaru Paling Atas)</h3>
-              <p class="text-xs text-slate-400">Diurutkan dari tanggal transaksi terbaru paling atas beserta sisa saldo berjalan</p>
-            </div>
-            <input type="text" value="${escapeHtml(filterState.cashSearch)}" oninput="filterState.cashSearch = this.value; renderCurrentPage();" placeholder="Cari tanggal atau rincian cash..." class="glass-input w-full sm:w-72 px-4 py-2 rounded-xl text-sm" />
-          </div>
-
-          <div class="overflow-x-auto max-h-[580px]">
-            <table class="w-full text-left border-collapse">
-              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3.5 px-3">No</th>
-                  <th class="py-3.5 px-3">Tanggal</th>
-                  <th class="py-3.5 px-3">Rincian Transaksi</th>
-                  <th class="py-3.5 px-3 text-right">Masuk (Simpan)</th>
-                  <th class="py-3.5 px-3 text-right">Keluar (Pakai)</th>
-                  <th class="py-3.5 px-3 text-right">Sisa Saldo Berjalan</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                ${filtered.map(r => `
-                  <tr class="hover:bg-white/[0.03] transition">
-                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
-                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
-                    <td class="py-3 px-3 text-white">${escapeHtml(r.rincian)}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.masuk > 0 ? formatRupiah(r.masuk) : '-'}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-rose-400 whitespace-nowrap">${r.keluar > 0 ? formatRupiah(r.keluar) : '-'}</td>
-                    <td class="py-3 px-3 text-right font-mono-num font-bold text-cyan-300 whitespace-nowrap">${formatRupiah(r.saldo)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PAGE 4: MUTASI REKENING GLOBAL ---
-    function getMutasiRekeningHtml(m) {
-      const nonZeroRek = dbState.rekening.filter(r => (Number(r.masuk) || 0) !== 0 || (Number(r.keluar) || 0) !== 0);
-
-      const totalMasuk = nonZeroRek.reduce((s, r) => s + r.masuk, 0);
-      const totalKeluar = nonZeroRek.reduce((s, r) => s + r.keluar, 0);
-      const q = filterState.rekSearch.toLowerCase();
-
-      const sortedRek = [...nonZeroRek].sort((a, b) => {
-        const diff = getDateTimestamp(b.tgl) - getDateTimestamp(a.tgl);
-        return diff !== 0 ? diff : b.no - a.no;
-      });
-
-      const filtered = sortedRek.filter(r =>
-        r.rincian.toLowerCase().includes(q) ||
-        r.tgl.toLowerCase().includes(q) ||
-        String(r.no).includes(q)
-      );
-
-      return `
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Rekening Masuk</div>
-            <div class="font-mono-num text-xl font-bold text-emerald-400 mt-1">${formatRupiah(totalMasuk)}</div>
-          </div>
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Rekening Keluar</div>
-            <div class="font-mono-num text-xl font-bold text-rose-400 mt-1">${formatRupiah(totalKeluar)}</div>
-          </div>
-          <div class="glass-card rounded-2xl p-4 border border-indigo-400/30">
-            <div class="text-xs text-indigo-300">Sisa Saldo Rekening Berjalan</div>
-            <div class="font-mono-num text-xl font-extrabold text-indigo-400 mt-1">${formatRupiah(m.saldoRekening)}</div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6">
-          <div class="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-            <div>
-              <h3 class="text-base font-bold text-white">Buku Mutasi Rekening Bank (${filtered.length} baris • Terbaru Paling Atas)</h3>
-              <p class="text-xs text-slate-400">Tanggal terbaru paling atas • Nilai 0 otomatis tidak ditampilkan di tabel</p>
-            </div>
-            <input type="text" value="${escapeHtml(filterState.rekSearch)}" oninput="filterState.rekSearch = this.value; renderCurrentPage();" placeholder="Cari tanggal atau rincian rekening..." class="glass-input w-full sm:w-72 px-4 py-2 rounded-xl text-sm" />
-          </div>
-
-          <div class="overflow-x-auto max-h-[580px]">
-            <table class="w-full text-left border-collapse">
-              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3.5 px-3">No</th>
-                  <th class="py-3.5 px-3">Tanggal</th>
-                  <th class="py-3.5 px-3">Rincian Transaksi</th>
-                  <th class="py-3.5 px-3 text-right">Masuk</th>
-                  <th class="py-3.5 px-3 text-right">Keluar</th>
-                  <th class="py-3.5 px-3 text-right">Sisa Saldo Berjalan</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                ${filtered.map(r => `
-                  <tr class="hover:bg-white/[0.03] transition">
-                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
-                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
-                    <td class="py-3 px-3 text-white">${escapeHtml(r.rincian)}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.masuk > 0 ? formatRupiah(r.masuk) : ''}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-rose-400 whitespace-nowrap">${r.keluar > 0 ? formatRupiah(r.keluar) : ''}</td>
-                    <td class="py-3 px-3 text-right font-mono-num font-bold text-indigo-300 whitespace-nowrap">${r.saldo !== 0 ? formatRupiah(r.saldo) : ''}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PAGE 5: REKAP PIUTANG ---
-    function getRekapPiutangHtml(m) {
-      const totalPinjamAll = m.borrowerSummary.reduce((s, b) => s + b.totalPinjam, 0);
-      const totalBayarAll = m.borrowerSummary.reduce((s, b) => s + b.totalBayar, 0);
-
-      return `
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Akumulasi Pinjaman</div>
-            <div class="font-mono-num text-xl font-bold text-white mt-1">${formatRupiah(totalPinjamAll)}</div>
-          </div>
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Angsuran Diterima</div>
-            <div class="font-mono-num text-xl font-bold text-emerald-400 mt-1">${formatRupiah(totalBayarAll)}</div>
-          </div>
-          <div class="glass-card rounded-2xl p-4 border border-amber-400/30">
-            <div class="text-xs text-amber-300">Total Sisa Piutang Beredar</div>
-            <div class="font-mono-num text-xl font-extrabold text-amber-400 mt-1">${formatRupiah(m.totalPiutang)}</div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-            <div>
-              <h3 class="text-base font-bold text-white">Daftar Ringkas Posisi Piutang Peminjam</h3>
-              <p class="text-xs text-slate-400">Klik nama peminjam untuk melihat kartu rincian riwayat piutang per orangan</p>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3.5 px-4">No</th>
-                  <th class="py-3.5 px-4">Nama Peminjam</th>
-                  <th class="py-3.5 px-4 text-right">Total Pinjaman</th>
-                  <th class="py-3.5 px-4 text-right">Total Dibayar</th>
-                  <th class="py-3.5 px-4 text-right">Sisa Piutang</th>
-                  <th class="py-3.5 px-4 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                ${m.borrowerSummary.map((b, idx) => {
-                  const isLunas = b.sisa <= 0;
-                  return `
-                    <tr class="hover:bg-white/[0.04] transition cursor-pointer" onclick="filterState.peroranganSelected='${escapeHtml(b.nama)}'; navigateTo('rinci_piutang_perorangan');">
-                      <td class="py-4 px-4 font-mono-num text-slate-400">${idx + 1}</td>
-                      <td class="py-4 px-4">
-                        <div class="font-bold text-cyan-300 hover:underline">${escapeHtml(b.nama)}</div>
-                        <div class="text-xs text-slate-400">${b.count} catatan mutasi</div>
-                      </td>
-                      <td class="py-4 px-4 text-right font-mono-num text-slate-200">${formatRupiah(b.totalPinjam)}</td>
-                      <td class="py-4 px-4 text-right font-mono-num text-emerald-400">${formatRupiah(b.totalBayar)}</td>
-                      <td class="py-4 px-4 text-right font-mono-num font-extrabold ${isLunas ? 'text-emerald-400' : 'text-amber-400'}">${formatRupiah(Math.max(0, b.sisa))}</td>
-                      <td class="py-4 px-4 text-center">
-                        ${isLunas ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">LUNAS</span>` : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">AKTIF BEREDAR</span>`}
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-              <tfoot>
-                <tr class="bg-white/[0.04] border-t-2 border-white/15 font-bold">
-                  <td colspan="2" class="py-4 px-4 text-white uppercase text-xs tracking-wider">Total Keseluruhan</td>
-                  <td class="py-4 px-4 text-right font-mono-num text-white">${formatRupiah(totalPinjamAll)}</td>
-                  <td class="py-4 px-4 text-right font-mono-num text-emerald-400">${formatRupiah(totalBayarAll)}</td>
-                  <td class="py-4 px-4 text-right font-mono-num text-amber-400 text-base">${formatRupiah(m.totalPiutang)}</td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PAGE 6: RINCI PIUTANG GABUNGAN ---
-    function getRinciPiutangHtml(m) {
-      const q = filterState.piutangSearch.toLowerCase();
-      const selectedBorrower = filterState.piutangBorrower;
-
-      const filtered = m.detailedPiutang.filter(row => {
-        const matchBorrower = selectedBorrower === 'ALL' || row.nama === selectedBorrower;
-        const matchQuery = row.nama.toLowerCase().includes(q) || row.keterangan.toLowerCase().includes(q) || row.tgl.toLowerCase().includes(q);
-        return matchBorrower && matchQuery;
-      });
-
-      return `
-        <div class="no-print glass-card rounded-3xl p-5 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            <div class="md:col-span-7">
-              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Pencarian Cepat (Nama / Keterangan / Tanggal)</label>
-              <input type="text" value="${escapeHtml(filterState.piutangSearch)}" oninput="filterState.piutangSearch = this.value; renderCurrentPage();" placeholder="Ketik kata kunci pencarian instan..." class="glass-input w-full px-4 py-2.5 rounded-xl text-sm" />
-            </div>
-            <div class="md:col-span-3">
-              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Filter Nama Peminjam</label>
-              <select onchange="filterState.piutangBorrower = this.value; renderCurrentPage();" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
-                <option value="ALL" ${selectedBorrower === 'ALL' ? 'selected' : ''}>Semua Peminjam (${m.borrowerSummary.length})</option>
-                ${m.borrowerSummary.map(b => `<option value="${escapeHtml(b.nama)}" ${selectedBorrower === b.nama ? 'selected' : ''}>${escapeHtml(b.nama)} (${formatRupiah(Math.max(0, b.sisa))})</option>`).join('')}
-              </select>
-            </div>
-            <div class="md:col-span-2 flex items-end">
-              <button type="button" onclick="filterState.piutangSearch=''; filterState.piutangBorrower='ALL'; renderCurrentPage();" class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 mt-5 md:mt-6">
-                Reset Filter
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-base font-bold text-white">Tabel Terpadu Riwayat Piutang Gabungan (${filtered.length} transaksi)</h3>
-              <p class="text-xs text-slate-400">Kolom Sisa Akhir dihitung secara kumulatif berjalan per masing-masing peminjam</p>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto max-h-[580px]">
-            <table class="w-full text-left border-collapse">
-              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3.5 px-3">No</th>
-                  <th class="py-3.5 px-3">Nama Peminjam</th>
-                  <th class="py-3.5 px-3">Tanggal</th>
-                  <th class="py-3.5 px-3">Keterangan / Rincian</th>
-                  <th class="py-3.5 px-3 text-right">Pinjaman</th>
-                  <th class="py-3.5 px-3 text-right">Bayar / Angsuran</th>
-                  <th class="py-3.5 px-3 text-right">Sisa Akhir</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                ${filtered.map(r => `
-                  <tr class="hover:bg-white/[0.03] transition">
-                    <td class="py-3 px-3 font-mono-num text-slate-400">${r.no}</td>
-                    <td class="py-3 px-3 font-semibold text-indigo-300 whitespace-nowrap">${escapeHtml(r.nama)}</td>
-                    <td class="py-3 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
-                    <td class="py-3 px-3 text-white">${escapeHtml(r.keterangan)}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-amber-400 whitespace-nowrap">${r.pinjam > 0 ? formatRupiah(r.pinjam) : '-'}</td>
-                    <td class="py-3 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.bayar > 0 ? formatRupiah(r.bayar) : '-'}</td>
-                    <td class="py-3 px-3 text-right font-mono-num font-bold ${r.sisaAkhir <= 0 ? 'text-emerald-400' : 'text-white'} whitespace-nowrap">${formatRupiah(Math.max(0, r.sisaAkhir))}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PAGE 7: RINCI PIUTANG PER ORANGAN ---
-    function getRinciPiutangPerOranganHtml(m) {
-      if (m.borrowerSummary.length === 0) {
-        return `
-          <div class="glass-card rounded-3xl p-8 text-center">
-            <h3 class="text-lg font-bold text-white mb-2">Belum Ada Data Piutang</h3>
-            <p class="text-sm text-slate-400">Silakan muat file <code class="text-cyan-300">database_keuangan_sync.xlsx</code> terlebih dahulu.</p>
-          </div>
-        `;
-      }
-
-      const validNames = m.borrowerSummary.map(b => b.nama);
-      if (!filterState.peroranganSelected || !validNames.includes(filterState.peroranganSelected)) {
-        filterState.peroranganSelected = validNames[0];
-      }
-
-      const selectedName = filterState.peroranganSelected;
-      const personSummary = m.borrowerSummary.find(b => b.nama === selectedName) || {
-        nama: selectedName,
-        totalPinjam: 0,
-        totalBayar: 0,
-        sisa: 0,
-        count: 0
-      };
-
-      let runningSisa = 0;
-      const personRows = dbState.piutang
-        .filter(r => (r.nama || 'Tanpa Nama').trim() === selectedName)
-        .map((r, idx) => {
-          const pinjam = Number(r.pinjam) || 0;
-          const bayar = Number(r.bayar) || 0;
-          runningSisa += pinjam - bayar;
-          return {
-            no: idx + 1,
-            tgl: r.tgl || '-',
-            keterangan: r.keterangan || '-',
-            pinjam,
-            bayar,
-            sisa: runningSisa
-          };
-        });
-
-      const isLunas = personSummary.sisa <= 0;
-
-      return `
-        <div class="no-print glass-card rounded-3xl p-5 mb-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div>
-              <label class="block text-[11px] font-bold uppercase tracking-wider text-violet-300">Pilih Nama Peminjam Per Orangan</label>
-              <p class="text-xs text-slate-400 mt-0.5">Menampilkan buku kartu piutang khusus untuk individu yang dipilih</p>
-            </div>
-            <select onchange="filterState.peroranganSelected = this.value; renderCurrentPage();" class="glass-input w-full md:w-72 px-4 py-2.5 rounded-xl text-sm font-semibold">
-              ${m.borrowerSummary.map(b => `
-                <option value="${escapeHtml(b.nama)}" ${b.nama === selectedName ? 'selected' : ''}>
-                  ${escapeHtml(b.nama)} — Sisa: ${formatRupiah(Math.max(0, b.sisa))}
-                </option>
-              `).join('')}
-            </select>
-          </div>
-
-          <div class="flex flex-wrap gap-2">
-            ${m.borrowerSummary.map(b => {
-              const active = b.nama === selectedName;
-              const lunas = b.sisa <= 0;
-              return `
-                <button type="button" onclick="filterState.peroranganSelected='${escapeHtml(b.nama)}'; renderCurrentPage();" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${active ? 'bg-violet-500/25 border-violet-400 text-white shadow-lg shadow-violet-500/20' : 'bg-slate-900/70 border-white/10 text-slate-300 hover:border-white/25'}">
-                  <span>${escapeHtml(b.nama)}</span>
-                  <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono-num ${lunas ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
-                    ${lunas ? 'LUNAS' : formatRupiah(b.sisa)}
-                  </span>
-                </button>
-              `;
-            }).join('')}
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-          <div class="glass-card rounded-2xl p-4 border-t-2 border-t-violet-400">
-            <div class="text-xs text-slate-400">Nama Peminjam</div>
-            <div class="text-xl font-extrabold text-white mt-1 truncate">${escapeHtml(selectedName)}</div>
-            <div class="mt-1.5">
-              ${isLunas
-                ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">STATUS: LUNAS</span>`
-                : `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">STATUS: AKTIF BEREDAR</span>`}
-            </div>
-          </div>
-
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Pinjaman (${personRows.length}x mutasi)</div>
-            <div class="font-mono-num text-xl font-bold text-white mt-1">${formatRupiah(personSummary.totalPinjam)}</div>
-          </div>
-
-          <div class="glass-card rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Sudah Dibayar</div>
-            <div class="font-mono-num text-xl font-bold text-emerald-400 mt-1">${formatRupiah(personSummary.totalBayar)}</div>
-          </div>
-
-          <div class="glass-card rounded-2xl p-4 border border-amber-400/35">
-            <div class="text-xs text-amber-300">Sisa Tanggungan Piutang</div>
-            <div class="font-mono-num text-2xl font-extrabold ${isLunas ? 'text-emerald-400' : 'text-amber-400'} mt-1">${formatRupiah(Math.max(0, personSummary.sisa))}</div>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
-            <div>
-              <h3 class="text-base font-bold text-white">Kartu Rincian Piutang: <span class="text-violet-300">${escapeHtml(selectedName)}</span></h3>
-              <p class="text-xs text-slate-400">Kronologis lengkap peminjaman, cicilan/pembayaran, dan sisa saldo berjalan per transaksi</p>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto max-h-[560px]">
-            <table class="w-full text-left border-collapse">
-              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
-                <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
-                  <th class="py-3.5 px-3">No</th>
-                  <th class="py-3.5 px-3">Tanggal</th>
-                  <th class="py-3.5 px-3">Keterangan / Rincian</th>
-                  <th class="py-3.5 px-3 text-right">Pinjam (+)</th>
-                  <th class="py-3.5 px-3 text-right">Bayar (-)</th>
-                  <th class="py-3.5 px-3 text-right">Sisa Saldo Piutang</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5 text-sm">
-                ${personRows.map(r => `
-                  <tr class="hover:bg-white/[0.03] transition">
-                    <td class="py-3.5 px-3 font-mono-num text-slate-400">${r.no}</td>
-                    <td class="py-3.5 px-3 font-mono-num text-slate-300 whitespace-nowrap">${escapeHtml(r.tgl)}</td>
-                    <td class="py-3.5 px-3 text-white font-medium">${escapeHtml(r.keterangan)}</td>
-                    <td class="py-3.5 px-3 text-right font-mono-num text-amber-400 whitespace-nowrap">${r.pinjam > 0 ? formatRupiah(r.pinjam) : '-'}</td>
-                    <td class="py-3.5 px-3 text-right font-mono-num text-emerald-400 whitespace-nowrap">${r.bayar > 0 ? formatRupiah(r.bayar) : '-'}</td>
-                    <td class="py-3.5 px-3 text-right font-mono-num font-bold ${r.sisa <= 0 ? 'text-emerald-400' : 'text-violet-300'} whitespace-nowrap">${formatRupiah(Math.max(0, r.sisa))}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-              <tfoot>
-                <tr class="bg-white/[0.04] border-t-2 border-white/15 font-bold">
-                  <td colspan="3" class="py-4 px-3 text-white uppercase text-xs tracking-wider">Total Rekap (${escapeHtml(selectedName)})</td>
-                  <td class="py-4 px-3 text-right font-mono-num text-amber-400">${formatRupiah(personSummary.totalPinjam)}</td>
-                  <td class="py-4 px-3 text-right font-mono-num text-emerald-400">${formatRupiah(personSummary.totalBayar)}</td>
-                  <td class="py-4 px-3 text-right font-mono-num text-white text-base">${formatRupiah(Math.max(0, personSummary.sisa))}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PAGE 8: LAPORAN REKAPAN ---
-    function getLaporanHtml(m) {
-      const todayStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-      return `
-        <div class="no-print glass-card rounded-3xl p-5 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h3 class="text-base font-bold text-white">Ekspor & Cetak Neraca Eksekutif</h3>
-            <p class="text-xs text-slate-400">Unduh seluruh database terbaru ke file Excel multi-sheet atau cetak laporan resmi.</p>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-500/25 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              <span>Cetak Laporan</span>
-            </button>
-            <button type="button" onclick="downloadMasterExcel()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              <span>Download Master Excel</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="glass-card rounded-3xl p-6 sm:p-8">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-5 mb-6 border-b border-white/10">
-            <div>
-              <div class="text-xs font-bold uppercase tracking-widest text-cyan-400">Laporan Neraca Keuangan Eksekutif</div>
-              <h2 class="text-2xl font-extrabold text-white mt-1">Sistem Keuangan Terpadu (Adi Muhtar)</h2>
-            </div>
-            <div class="text-xs text-slate-400 mt-2 sm:mt-0 sm:text-right">
-              <div>Tanggal Cetak: <span class="text-slate-200 font-medium">${todayStr}</span></div>
-              <div>Total Transaksi Tercatat: <span class="font-mono-num text-cyan-300 font-semibold">${m.totalTransaksi} entri</span></div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-7">
-            <div class="rounded-2xl bg-slate-950/50 border border-white/10 p-5">
-              <h4 class="text-sm font-bold uppercase tracking-wider text-emerald-400 mb-4">I. Aktiva Likuid & Simpanan</h4>
-              <div class="space-y-3 text-sm">
-                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabunganku Cash (Tunai)</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoCash)}</span></div>
-                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabunganku Rekening (Bank)</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoRekening)}</span></div>
-                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">Tabungan Koperasi</span><span class="font-mono-num font-semibold text-white">${formatRupiah(m.saldoKoperasi)}</span></div>
-                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-rose-300">Tabungan Nazila Kartika (Terpisah)</span><span class="font-mono-num font-semibold text-rose-300">${formatRupiah(m.saldoNazila)}</span></div>
-                <div class="flex justify-between pt-2 text-base font-extrabold text-emerald-400"><span>Total Simpanan (Cash + Rekening)</span><span class="font-mono-num">${formatRupiah(m.totalSimpanan)}</span></div>
-              </div>
-            </div>
-
-            <div class="rounded-2xl bg-slate-950/50 border border-white/10 p-5">
-              <h4 class="text-sm font-bold uppercase tracking-wider text-indigo-400 mb-4">II. Aktiva Piutang Beredar</h4>
-              <div class="space-y-3 text-sm">
-                ${m.borrowerSummary.map(b => `<div class="flex justify-between py-2 border-b border-white/5"><span class="text-slate-300">${escapeHtml(b.nama)}</span><span class="font-mono-num font-semibold ${b.sisa > 0 ? 'text-amber-300' : 'text-emerald-400'}">${formatRupiah(Math.max(0, b.sisa))}</span></div>`).join('')}
-                <div class="flex justify-between pt-2 text-base font-extrabold text-indigo-400"><span>Subtotal Piutang</span><span class="font-mono-num">${formatRupiah(m.totalPiutang)}</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="rounded-2xl bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-emerald-500/20 border border-cyan-400/35 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <div class="text-xs uppercase tracking-wider text-cyan-300 font-bold">Total Keseluruhan Aktiva / Kekayaan Bersih</div>
-              <div class="text-xs text-slate-300 mt-0.5">Gabungan seluruh saldo kas tunai, rekening bank, simpanan koperasi, dan piutang beredar</div>
-            </div>
-            <div class="font-mono-num text-2xl sm:text-3xl font-extrabold text-white">${formatRupiah(m.totalAktiva)}</div>
-          </div>
-        </div>
-      `;
-    }
-
-    // =========================================================================
-    // 6. CROSS-DEVICE SAME-FOLDER EXCEL ENGINE (HTTP + XHR + FILE PICKER)
-    // =========================================================================
-    function normalizeExcelDate(val) {
-      if (val === null || val === undefined || val === '') return new Date().toISOString().slice(0, 10);
-      if (val instanceof Date && !isNaN(val)) {
-        const y = val.getFullYear();
-        const m = String(val.getMonth() + 1).padStart(2, '0');
-        const d = String(val.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-      }
-      if (typeof val === 'number') {
-        const parsed = XLSX.SSF.parse_date_code(val);
-        if (parsed) {
-          const y = parsed.y;
-          const m = String(parsed.m).padStart(2, '0');
-          const d = String(parsed.d).padStart(2, '0');
-          return `${y}-${m}-${d}`;
-        }
-      }
-      const str = String(val).trim();
-      const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-      if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
-      return str;
-    }
-
-    function parseNumericCell(val) {
-      if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    // Pembersih angka dari format Excel (misal "Rp 1.500.000" atau 1500000)
+    function parseNumber(val) {
+      if (typeof val === 'number') return val;
       if (!val) return 0;
-      const cleaned = String(val).replace(/[^0-9.-]/g, '');
-      const num = Number(cleaned);
-      return isNaN(num) ? 0 : num;
+      const cleaned = String(val).replace(/[^0-9,-]/g, '').replace(/\./g, '').replace(',', '.');
+      return parseFloat(cleaned) || 0;
     }
 
-    function parseWorkbook(workbook) {
-      let parsedCash = [];
-      let parsedRek = [];
-      let parsedPiutang = [];
-      let parsedKoperasi = null;
-      let parsedNazila = [];
-
-      const mutasiName = workbook.SheetNames.find(n => n.toLowerCase().includes('mutasi'));
-      if (mutasiName) {
-        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[mutasiName], { header: 1, defval: '' });
-
-        for (let r = 4; r < matrix.length; r++) {
-          const row = matrix[r] || [];
-
-          const cTgl = row[1];
-          const cRincian = String(row[2] || '').trim();
-          const cMasuk = parseNumericCell(row[3]);
-          const cKeluar = parseNumericCell(row[4]);
-
-          if (cRincian && !['rincian', 'total', 'saldo'].includes(cRincian.toLowerCase()) && (cTgl !== '' || cMasuk > 0 || cKeluar > 0)) {
-            parsedCash.push({
-              no: parsedCash.length + 1,
-              tgl: normalizeExcelDate(cTgl),
-              rincian: cRincian,
-              masuk: cMasuk,
-              keluar: cKeluar,
-              saldo: 0
-            });
-          }
-
-          if (row.length >= 11) {
-            const col7 = row[7];
-            const col8 = row[8];
-            const col9 = row[9];
-            const col10 = row[10];
-            const col11 = row[11];
-            const isCol7Index = typeof col7 === 'number' && col7 < 10000 && col8 !== '';
-            const rTgl = isCol7Index ? col8 : col7;
-            const rRincian = String(isCol7Index ? col9 : col8 || '').trim();
-            const rMasuk = parseNumericCell(isCol7Index ? col10 : col9);
-            const rKeluar = parseNumericCell(isCol7Index ? col11 : col10);
-
-            if (rRincian && !['rincian', 'total', 'saldo'].includes(rRincian.toLowerCase()) && (rMasuk > 0 || rKeluar > 0)) {
-              parsedRek.push({
-                no: parsedRek.length + 1,
-                tgl: normalizeExcelDate(rTgl),
-                rincian: rRincian,
-                masuk: rMasuk,
-                keluar: rKeluar,
-                saldo: 0
-              });
-            }
-          }
-        }
+    // Format tanggal Excel serial atau string
+    function formatExcelDate(val) {
+      if (!val) return '-';
+      if (typeof val === 'number' && val > 20000) {
+        const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+        return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
       }
-
-      const piutangName = workbook.SheetNames.find(n => n.toLowerCase().includes('piutang'));
-      if (piutangName) {
-        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[piutangName], { header: 1, defval: '' });
-        for (let r = 4; r < matrix.length; r++) {
-          const row = matrix[r] || [];
-          const isCol0No = typeof row[0] === 'number' && typeof row[1] === 'string' && row[1].trim() !== '';
-          const nama = String(isCol0No ? row[1] : row[0] || '').trim();
-          const tgl = isCol0No ? row[2] : row[1];
-          const ket = String(isCol0No ? row[3] : row[2] || '').trim();
-          const pinjam = parseNumericCell(isCol0No ? row[4] : row[3]);
-          const bayar = parseNumericCell(isCol0No ? row[5] : row[4]);
-
-          if (nama && !['nama', 'nama peminjam', 'no', 'total'].includes(nama.toLowerCase()) && (pinjam > 0 || bayar > 0)) {
-            parsedPiutang.push({
-              nama,
-              tgl: normalizeExcelDate(tgl),
-              keterangan: ket || '-',
-              pinjam,
-              bayar
-            });
-          }
-        }
-      }
-
-      const kopName = workbook.SheetNames.find(n => n.toLowerCase().includes('koperasi') || n.toLowerCase().includes('simpanan'));
-      if (kopName) {
-        const sheet = workbook.Sheets[kopName];
-        if (sheet['B1'] && sheet['B1'].v !== undefined && !isNaN(parseNumericCell(sheet['B1'].v))) {
-          parsedKoperasi = parseNumericCell(sheet['B1'].v);
-        }
-      }
-
-      // Parse Tabungan_Nazila sheet
-      const nazilaName = workbook.SheetNames.find(n => n.toLowerCase().includes('nazila'));
-      if (nazilaName) {
-        const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[nazilaName], { header: 1, defval: '' });
-        for (let r = 3; r < matrix.length; r++) {
-          const row = matrix[r] || [];
-          const col0 = row[0];
-          const isCol0Index = (typeof col0 === 'number' && col0 < 10000) || (typeof col0 === 'string' && /^\d+$/.test(col0.trim()));
-          const nTgl = isCol0Index ? row[1] : row[0];
-          const nRincian = String(isCol0Index ? row[2] : row[1] || '').trim();
-          const nMasuk = parseNumericCell(isCol0Index ? row[3] : row[2]);
-          const nKeluar = parseNumericCell(isCol0Index ? row[4] : row[3]);
-
-          if (
-            nRincian &&
-            !['rincian', 'total', 'saldo', 'no', 'tanggal'].includes(nRincian.toLowerCase()) &&
-            (nMasuk > 0 || nKeluar > 0)
-          ) {
-            parsedNazila.push({
-              no: parsedNazila.length + 1,
-              tgl: normalizeExcelDate(nTgl),
-              rincian: nRincian,
-              masuk: nMasuk,
-              keluar: nKeluar,
-              saldo: 0
-            });
-          }
-        }
-      }
-
-      return { cash: parsedCash, rekening: parsedRek, piutang: parsedPiutang, koperasi: parsedKoperasi, nazila: parsedNazila };
+      return String(val);
     }
 
-    function applyParsedWorkbook(workbook, sourceName, modeLabel, silent = false) {
-      const parsed = parseWorkbook(workbook);
-      let applied = false;
+    // 2. Sinkronisasi Real-Time Seluruh Sheet dari File Excel
+    async function syncDatabase() {
+      const loader = document.getElementById('loading-screen');
+      const statusEl = document.getElementById('sync-status');
+      loader.style.display = 'flex';
+      loader.style.opacity = '1';
 
-      if (parsed.cash.length > 0) { dbState.cash = parsed.cash; applied = true; }
-      if (parsed.rekening.length > 0) { dbState.rekening = parsed.rekening; applied = true; }
-      if (parsed.piutang.length > 0) { dbState.piutang = parsed.piutang; applied = true; }
-      if (parsed.koperasi !== null && !isNaN(parsed.koperasi)) { dbState.koperasi = parsed.koperasi; applied = true; }
-      if (parsed.nazila.length > 0) { dbState.nazila = parsed.nazila; applied = true; }
+      let loaded = false;
 
-      if (applied) {
-        liveSyncState.isLoaded = true;
-        recalculateRunningBalances();
-        document.getElementById('dbSourceLabel').textContent = sourceName;
-        const guideBanner = document.getElementById('syncGuideBanner');
-        if (guideBanner) guideBanner.classList.add('hidden');
-        updateSyncIndicatorUI(modeLabel, true);
-        renderCurrentPage();
-        const totalRows = dbState.cash.length + dbState.rekening.length + dbState.piutang.length + dbState.nazila.length;
-        if (!silent) showToast(`Data sinkron dari ${sourceName} (${totalRows} entri)!`);
-      }
-      return applied;
-    }
-
-    function updateSyncIndicatorUI(modeText, isConnected = true) {
-      const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const modeEl = document.getElementById('liveSyncModeText');
-      const clockEl = document.getElementById('liveSyncClock');
-      const sideLabel = document.getElementById('lastSyncTimeLabel');
-      const sideBadge = document.getElementById('sidebarSyncBadge');
-      const sideDot = document.getElementById('sidebarSyncDot');
-      const livePill = document.getElementById('liveSyncPill');
-      const livePing = document.getElementById('liveSyncPing');
-      const liveDot = document.getElementById('liveSyncDot');
-
-      if (modeEl) modeEl.textContent = modeText;
-      if (clockEl) clockEl.textContent = nowStr;
-      if (sideLabel) sideLabel.textContent = isConnected ? `Update: ${nowStr}` : 'Menunggu file Excel...';
-
-      if (isConnected) {
-        if (sideBadge) { sideBadge.textContent = 'LIVE SYNC'; sideBadge.className = 'text-emerald-400 font-bold text-[11px]'; }
-        if (sideDot) sideDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
-        if (livePill) livePill.className = 'inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-xs font-semibold';
-        if (livePing) livePing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
-        if (liveDot) liveDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-400';
-      } else {
-        if (sideBadge) { sideBadge.textContent = 'OFFLINE'; sideBadge.className = 'text-amber-400 font-bold text-[11px]'; }
-        if (sideDot) sideDot.className = 'w-2 h-2 rounded-full bg-amber-400';
-      }
-    }
-
-    async function triggerUniversalExcelSync() {
-      if ('showOpenFilePicker' in window) {
+      for (const fileName of DEFAULT_DB_FILES) {
         try {
-          const [handle] = await window.showOpenFilePicker({
-            types: [{
-              description: 'Excel Database File',
-              accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx', '.xls'] }
-            }],
-            multiple: false
-          });
-          liveSyncState.fileHandle = handle;
-          liveSyncState.mode = 'handle';
-          liveSyncState.lastModified = null;
-
-          const btn = document.getElementById('btnConnectLiveFile');
-          if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Live: ${escapeHtml(handle.name)}</span>`;
-          await checkFileHandleUpdate(false);
-          return;
-        } catch (err) {
-          if (err.name === 'AbortError') return;
-        }
-      }
-      const fileInput = document.getElementById('universalExcelInput');
-      if (fileInput) {
-        fileInput.value = '';
-        fileInput.click();
-      }
-    }
-
-    async function handleUniversalFileSelect(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      try {
-        liveSyncState.mode = 'manual';
-        const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
-        const ok = applyParsedWorkbook(workbook, file.name, 'File Lokal HP/PC', false);
-        if (ok) {
-          const btn = document.getElementById('btnConnectLiveFile');
-          if (btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Terhubung: ${escapeHtml(file.name)}</span>`;
-        } else {
-          showToast('Format sheet tidak sesuai dengan struktur database_keuangan_sync.xlsx.', 'error');
-        }
-      } catch (err) {
-        showToast('Gagal membaca file Excel: ' + err.message, 'error');
-      }
-    }
-
-    async function checkFileHandleUpdate(silent = true) {
-      if (!liveSyncState.fileHandle) return;
-      try {
-        const file = await liveSyncState.fileHandle.getFile();
-        if (liveSyncState.lastModified !== file.lastModified) {
-          const isFirst = liveSyncState.lastModified === null;
-          liveSyncState.lastModified = file.lastModified;
-          const buffer = await file.arrayBuffer();
-          const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
-          applyParsedWorkbook(workbook, file.name, 'Live File Watcher', silent && !isFirst);
-        }
-      } catch (err) { console.warn(err); }
-    }
-
-    function fetchSameFolderArrayBuffer(url) {
-      return new Promise((resolve, reject) => {
-        fetch(url, { cache: 'no-store' })
-          .then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.arrayBuffer();
-          })
-          .then(resolve)
-          .catch(() => {
-            try {
-              const xhr = new XMLHttpRequest();
-              xhr.open('GET', url, true);
-              xhr.responseType = 'arraybuffer';
-              xhr.onload = function () {
-                if ((xhr.status === 200 || xhr.status === 0) && xhr.response && xhr.response.byteLength > 0) {
-                  resolve(xhr.response);
-                } else {
-                  reject(new Error('XHR gagal'));
-                }
-              };
-              xhr.onerror = () => reject(new Error('XHR error'));
-              xhr.send();
-            } catch (e) {
-              reject(e);
-            }
-          });
-      });
-    }
-
-    async function checkSameFolderExcelUpdate(manual = false) {
-      if (liveSyncState.mode === 'handle' || liveSyncState.mode === 'manual') return;
-
-      const bustUrl = `${EXCEL_RELATIVE_PATH}?v=${Date.now()}`;
-      try {
-        const buffer = await fetchSameFolderArrayBuffer(bustUrl);
-        const bytes = new Uint8Array(buffer);
-        let checksum = bytes.length;
-        for (let i = 0; i < bytes.length; i += 37) checksum = (checksum * 31 + bytes[i]) >>> 0;
-        const signature = `${bytes.length}|${checksum}`;
-
-        liveSyncState.mode = 'http';
-        if (liveSyncState.lastSignature !== signature) {
-          const isFirst = liveSyncState.lastSignature === null;
-          liveSyncState.lastSignature = signature;
-          const workbook = XLSX.read(bytes, { type: 'array' });
-          applyParsedWorkbook(workbook, EXCEL_FILENAME, 'Auto-Sync Satu Folder', isFirst && !manual);
-        } else if (manual) {
-          showToast('Data sudah paling mutakhir dari ' + EXCEL_FILENAME, 'info');
-        }
-      } catch (err) {
-        if (!liveSyncState.isLoaded) {
-          updateSyncIndicatorUI('Perlu Pilih File (Lokal HP/PC)', false);
-          const guideBanner = document.getElementById('syncGuideBanner');
-          if (guideBanner) guideBanner.classList.remove('hidden');
-          if (manual) {
-            showToast('Akses otomatis diblokir browser lokal. Klik "Muat database_keuangan_sync.xlsx".', 'info');
+          // Anti-cache timestamp agar selalu ambil file terbaru
+          const response = await fetch(`${fileName}?nocache=${Date.now()}`, { cache: 'no-store' });
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            processWorkbook(arrayBuffer, fileName);
+            loaded = true;
+            break;
           }
+        } catch (err) {
+          console.warn(`File ${fileName} belum ditemukan, mencoba kandidat berikutnya...`);
         }
       }
-    }
 
-    function forceCheckLiveSync(manual = false) {
-      if (liveSyncState.mode === 'handle') {
-        checkFileHandleUpdate(false);
-      } else if (liveSyncState.mode === 'manual') {
-        triggerUniversalExcelSync();
-      } else {
-        checkSameFolderExcelUpdate(manual);
+      if (!loaded) {
+        statusEl.textContent = 'File database otomatis tidak ditemukan di server. Klik "Muat File Excel" untuk memilih file lokal.';
       }
+
+      setTimeout(() => {
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.style.display = 'none'; }, 350);
+      }, 300);
     }
 
-    function downloadMasterExcel() {
-      try {
-        const m = getMetrics();
-        const wb = XLSX.utils.book_new();
-        const mutasiRows = [
-          ...dbState.cash.map(r => ({ No: r.no, Jenis_Akun: 'Cash', Tanggal: r.tgl, Rincian: r.rincian, Masuk: r.masuk, Keluar: r.keluar, Saldo: r.saldo })),
-          ...dbState.rekening.map(r => ({ No: r.no, Jenis_Akun: 'Rekening', Tanggal: r.tgl, Rincian: r.rincian, Masuk: r.masuk, Keluar: r.keluar, Saldo: r.saldo }))
-        ];
-        const nazilaRows = dbState.nazila.map(r => ({
-          No: r.no,
-          Tanggal: r.tgl,
-          Rincian: r.rincian,
-          'Jumlah Masuk': r.masuk,
-          'Jumlah Keluar': r.keluar,
-          Saldo: r.saldo
-        }));
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mutasiRows), 'Mutasi_Cash_Rekening');
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(m.detailedPiutang), 'Piutang_Gabungan');
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{ Pos_Simpanan: 'Tabungan Koperasi', Saldo: m.saldoKoperasi }]), 'Simpanan_Koperasi');
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(nazilaRows), 'Tabungan_Nazila');
-        XLSX.writeFile(wb, EXCEL_FILENAME);
-        showToast('File ' + EXCEL_FILENAME + ' berhasil diunduh!');
-      } catch (err) { showToast('Gagal mendownload Excel.', 'error'); }
+    // Handler Upload Manual Jika Dibuka Offline (file://)
+    document.getElementById('manual-file').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        processWorkbook(evt.target.result, file.name);
+        enterFullscreen();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Ekstrak SEMUA Sheet dari Workbook tanpa terkecuali
+    function processWorkbook(buffer, sourceName) {
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      ALL_RECORDS = [];
+
+      const sheetSelect = document.getElementById('sheet-filter');
+      sheetSelect.innerHTML = '<option value="ALL">Semua Sheet (Gabungan Real-Time)</option>';
+
+      workbook.SheetNames.forEach(sheetName => {
+        // Tambahkan opsi filter per sheet
+        const opt = document.createElement('option');
+        opt.value = sheetName;
+        opt.textContent = sheetName;
+        sheetSelect.appendChild(opt);
+
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+        rows.forEach(row => {
+          // Deteksi fleksibel nama kolom di berbagai sheet
+          const keys = Object.keys(row);
+          if (keys.length === 0) return;
+
+          const getCol = (keywords) => {
+            const foundKey = keys.find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+            return foundKey ? row[foundKey] : '';
+          };
+
+          const tanggal = formatExcelDate(getCol(['tanggal', 'tgl', 'date', 'waktu']));
+          const kategori = getCol(['kategori', 'akun', 'nama', 'tabungan', 'jenis', 'pos']) || sheetName;
+          const keterangan = getCol(['keterangan', 'uraian', 'deskripsi', 'catatan', 'transaksi', 'item']) || '-';
+          
+          const masuk = parseNumber(getCol(['masuk', 'debit', 'pemasukan', 'setor', 'kredit_in']));
+          const keluar = parseNumber(getCol(['keluar', 'kredit', 'pengeluaran', 'tarik', 'ambil']));
+          const saldoNominal = parseNumber(getCol(['saldo', 'nominal', 'jumlah', 'total', 'nilai', 'sisa']));
+
+          // Abaikan baris kosong total
+          if (masuk === 0 && keluar === 0 && saldoNominal === 0 && keterangan === '-') return;
+
+          ALL_RECORDS.push({
+            sheet: sheetName,
+            tanggal,
+            kategori: String(kategori),
+            keterangan: String(keterangan),
+            masuk,
+            keluar,
+            nominal: saldoNominal || (masuk - keluar)
+          });
+        });
+      });
+
+      const jam = new Date().toLocaleTimeString('id-ID');
+      document.getElementById('sync-status').textContent =
+        `Tersinkron Real-Time: ${sourceName} (${workbook.SheetNames.length} Sheet, ${ALL_RECORDS.length} Baris) • Update ${jam}`;
+
+      renderDashboard();
     }
 
-    function startRealtimeSyncLoop() {
-      checkSameFolderExcelUpdate(false);
-      setInterval(() => {
-        if (liveSyncState.mode === 'handle') checkFileHandleUpdate(false);
-        else if (liveSyncState.mode !== 'manual') checkSameFolderExcelUpdate(false);
-      }, 2000);
+    // 3. Render Tabel & Kalkulasi KPI Real-Time
+    function renderDashboard() {
+      const selectedSheet = document.getElementById('sheet-filter').value;
+      const keyword = document.getElementById('search-input').value.toLowerCase().trim();
+      const tbody = document.getElementById('table-body');
+
+      document.getElementById('print-sheet-label').textContent =
+        selectedSheet === 'ALL' ? 'Semua Sheet Terpadu' : selectedSheet;
+
+      const filtered = ALL_RECORDS.filter(item => {
+        const matchSheet = selectedSheet === 'ALL' || item.sheet === selectedSheet;
+        const matchSearch = !keyword ||
+          item.sheet.toLowerCase().includes(keyword) ||
+          item.kategori.toLowerCase().includes(keyword) ||
+          item.keterangan.toLowerCase().includes(keyword) ||
+          item.tanggal.toLowerCase().includes(keyword);
+        return matchSheet && matchSearch;
+      });
+
+      let totalIn = 0;
+      let totalOut = 0;
+      let totalSaving = 0;
+      let totalNet = 0;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:18px; color:#94a3b8;">Tidak ada data yang sesuai filter.</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map((row, idx) => {
+          totalIn += row.masuk;
+          totalOut += row.keluar;
+
+          const isTabungan = row.sheet.toLowerCase().includes('tabungan') ||
+                             row.kategori.toLowerCase().includes('tabungan') ||
+                             row.kategori.toLowerCase().includes('nazila');
+
+          if (isTabungan) {
+            totalSaving += (row.masuk > 0 || row.keluar > 0) ? (row.masuk - row.keluar) : row.nominal;
+          }
+
+          const rowVal = (row.masuk > 0 || row.keluar > 0) ? (row.masuk - row.keluar) : row.nominal;
+          totalNet += rowVal;
+
+          return `
+            <tr>
+              <td>${idx + 1}</td>
+              <td><strong>${row.sheet}</strong></td>
+              <td>${row.tanggal}</td>
+              <td>${row.kategori}</td>
+              <td>${row.keterangan}</td>
+              <td class="num text-green">${row.masuk ? formatRp(row.masuk) : '-'}</td>
+              <td class="num text-red">${row.keluar ? formatRp(row.keluar) : '-'}</td>
+              <td class="num text-gold"><strong>${formatRp(row.nominal)}</strong></td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('kpi-in').textContent = formatRp(totalIn);
+      document.getElementById('kpi-out').textContent = formatRp(totalOut);
+      document.getElementById('kpi-saving').textContent = formatRp(totalSaving);
+      document.getElementById('kpi-net').textContent = formatRp(totalNet);
     }
   </script>
 </body>
