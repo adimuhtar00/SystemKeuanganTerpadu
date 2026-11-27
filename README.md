@@ -1,2 +1,0 @@
-# SystemKeuanganTerpadu
-System Keuangan Terpadu
